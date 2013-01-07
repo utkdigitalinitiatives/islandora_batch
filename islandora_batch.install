@@ -3,45 +3,39 @@
 function islandora_batch_schema() {
   $schema = array();
 
-  $schema['islandora_batch_resources'] = array(
-    'description' => 'Tracks resource usage. Resources whose linked objects ' .
-      'are completely ingested may be eligible for deletion.',
+  $schema['islandora_batch_queue'] = array(
+    'description' => 'Holds the queue of object entries being batch ingested.',
     'fields' => array(
       'id' => array(
-        'description' => 'The object which will use/has used this resource.',
+        'description' => 'An identifier which was allocated for this object.',
         'type' => 'varchar',
         'not null' => TRUE,
-        'length' => 256,
+        'length' => 255,
       ),
-      'type' => array(
-        'description' => 'The type of resource. Directories vs files vs ...?',
+      'parent' => array(
+        'description' => 'If applicable, the identifier (allocated) for the ' .
+          'parent object.',
         'type' => 'varchar',
-        'not null' => TRUE,
-        'length' => 64,
+        'not null' => FALSE,
+        'length' => 255,
       ),
-      'resource' => array(
-        'description' => 'Some information which can be understood alongside ' .
-          'the type, such that the resource can be located.',
-        'type' => 'varchar',
-        'not null' => TRUE,
+      'data' => array(
+        'description' => 'A serialized object to be processed later.',
+        'type' => 'blob',
+        'size' => 'big',
       ),
     ),
-    'primary key' => array('id', 'type', 'resource'),
+    'primary key' => array('id'),
     'foreign keys' => array(
-      'associated_object' => array(
+      'parent_entry' => array(
         'table' => 'islandora_batch_queue',
         'fields' => array(
-          'id' => 'id',
-        ),
-      ),
-      'associated_state' => array(
-        'table' => 'islandora_batch_state',
-        'fields' => array(
-          'id' => 'id',
+          'parent' => 'id',
         ),
       ),
     ),
   );
+
   $schema['islandora_batch_state'] = array(
     'description' => 'Holds the state of the objects in the queue.',
     'fields' => array(
@@ -49,7 +43,7 @@ function islandora_batch_schema() {
         'description' => 'The identifier whose state we are storing.',
         'type' => 'varchar',
         'not null' => TRUE,
-        'length' => 256,
+        'length' => 255,
       ),
       'state' => array(
         'description' => 'The state of the object.',
@@ -71,36 +65,45 @@ function islandora_batch_schema() {
     ),
   );
 
-  $schema['islandora_batch_queue'] = array(
-    'description' => 'Holds the queue of object entries being batch ingested.',
+  $schema['islandora_batch_resources'] = array(
+    'description' => 'Tracks resource usage.',
     'fields' => array(
+      'n' => array(
+        'description' => 'A numeric ID to use in the key.',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
       'id' => array(
-        'description' => 'An identifier which was allocated for this object. ' .
-          'It should already be present on the serialized object in "data".',
+        'description' => 'The object which will use or have used this resource.',
         'type' => 'varchar',
         'not null' => TRUE,
-        'length' => 256,
+        'length' => 255,
       ),
-      'parent' => array(
-        'description' => 'If applicable, the identifier (allocated) for the ' .
-          'parent object. It is unlikely that this should be a collection ' .
-          'object.',
+      'type' => array(
+        'description' => 'The type of resource. Directories vs files vs whatever.',
         'type' => 'varchar',
-        'not null' => FALSE,
-        'length' => 256,
+        'not null' => TRUE,
+        'length' => 64,
       ),
-      'data' => array(
-        'description' => 'A serialized object to be processed later.',
-        'type' => 'blob',
-        'size' => 'big',
+      'resource' => array(
+        'description' => 'Indicate how to find the resource.',
+        'type' => 'varchar',
+        'length' => 4096,
+        'not null' => TRUE,
       ),
     ),
-    'primary key' => array('id'),
+    'primary key' => array('n', 'id', 'type'),
     'foreign keys' => array(
-      'parent_entry' => array(
+      'associated_object' => array(
         'table' => 'islandora_batch_queue',
-        'columns' => array(
-          'parent' => 'id',
+        'fields' => array(
+          'id' => 'id',
+        ),
+      ),
+      'associated_state' => array(
+        'table' => 'islandora_batch_state',
+        'fields' => array(
+          'id' => 'id',
         ),
       ),
     ),
