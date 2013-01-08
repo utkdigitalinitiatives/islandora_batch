@@ -1,6 +1,11 @@
 <?php
 
-abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
+/**
+ * Batch interface.
+ *
+ * Implementing classes should subclass some version of FedoraObject, so 
+ */
+abstract class IslandoraBatchInterface extends IslandoraNewFedoraObject {
   /**
    * @return int
    *   Used to determine the initial state of the object in the queue.
@@ -17,8 +22,18 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    * Perform arbitrary processing before ingest.
    *
    * @return int
-   *   Return the state after processing.
+   *   Return the state after processing. If it is "fully processed", this
+   *   object should be pushed to the back-end.
+   *   If the state is "partially processed", we should be careful that the
+   *   work does not get performed again next time around.
    */
   abstract public function batch_process();
+
+  /**
+   * Get the resources to which we should link in the database.
+   *
+   * Should be in the format used by IslandoraBatchPreprocessor::add_to_database().
+   */
+  abstract public function get_resources();
 }
 

@@ -37,9 +37,6 @@ abstract class IslandoraBatchPreprocessor {
         t('Failed to acquire lock for batch ingest.')
       );
     }
-    else {
-      timer_start('islandora_batch_processing');
-    }
   }
 
   /**
@@ -57,11 +54,16 @@ abstract class IslandoraBatchPreprocessor {
    *   An id to use in the back-end (Fedora).
    */
   protected function get_id() {
-
+    // Not specifying a namespace should result in one from the default
+    //   declared in the fedora.fcfg ("changeme" by default).
+    // TODO: Implement some form of caching, so we can get multiple at a time.
+    return $connection->repository->api->m->getNextPid();
   }
 
   /**
    * Add the provided object to the database.
+   *
+   * Should be called from inside the "preprocess" method.
    *
    * @param IslandoraBatchObject $object
    *   The object to be later processed and added to Fedora.
@@ -100,6 +102,19 @@ abstract class IslandoraBatchPreprocessor {
     }
 
     return $object->id;
+  }
+
+  /**
+   * Add the relationship to a top-level object.
+   */
+  protected function add_membership_relationship(IslandoraBatchObject $object) {
+    $collection = isset($this->parameters['collection'])?
+      $this->parameters['collection']:
+      variable_get('islandora_repository_pid', 'islandora:root');
+    $predicate = 'isMemberOfCollection';
+    $uri = FEDORA_RELS_EXT_URI;
+
+    $object->relationships->add($uri, $predicate, $collection);
   }
 }
 
