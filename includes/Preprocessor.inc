@@ -75,7 +75,7 @@ abstract class IslandoraBatchPreprocessor {
    *   The PID of the object (one will be allocated if the object does not
    *   already have one; otherwise, that on the object will be returned).
    */
-  protected function add_to_database(IslandoraBatchObject $object,
+  protected function add_to_database(AbstractFedoraObject $object,
     array $resources = array(), $parent = NULL) {
 
     if (!isset($object->id)) {
@@ -107,7 +107,7 @@ abstract class IslandoraBatchPreprocessor {
   /**
    * Add the relationship to a top-level object.
    */
-  protected function add_membership_relationship(IslandoraBatchObject $object) {
+  protected function add_membership_relationship(AbstractFedoraObject $object) {
     $collection = isset($this->parameters['collection'])?
       $this->parameters['collection']:
       variable_get('islandora_repository_pid', 'islandora:root');

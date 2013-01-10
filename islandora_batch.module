@@ -1,2 +1,37 @@
 <?php
 
+function islandora_batch_preprocess(IslandoraBatchPreprocessor $preprocessor) {
+
+}
+
+/**
+ * Generate and set the batch operations.
+ *
+ * After calling this, it will be necessary to call one of the functions which
+ * actually execute the batch, such as batch_process(),
+ * drush_backend_batch_process() or background_batch_process_batch().
+ *
+ * Queries the database for preprocessed entries, and attempts to ingest them.
+ */
+function islandora_batch_set_operations (array $parameters) {
+  $batch = array(
+    'title' => t('Islandora Batch Ingest'),
+    'finished' => 'islandora_batch_finished',
+    'init_message' => t('Initializing...'),
+    'file' => drupal_get_path('module', 'islandora_batch') . '/includes/ingest.batch.inc',
+    'operations' => array(
+      array('islandora_batch_lock'),
+      array('islandora_batch_ingest_process', array($parameters)),
+    ),
+  );
+
+  batch_set($batch);
+}
+
+/**
+ * "Dumbly" sets the batch operations and calls batch_process().
+ */
+function islandora_batch_ingest() {
+  islandora_batch_set_operations();
+  batch_process();
+}
