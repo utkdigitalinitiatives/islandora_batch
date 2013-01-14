@@ -17,7 +17,7 @@ function islandora_batch_drush_command() {
           'will complete before terminating execution. If not provided, ' .
           'should process until all available preprocessed objects are ' .
           'exhausted.',
-        'required' => FALSE,
+        'value' => 'optional',
       ),
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
@@ -83,6 +83,9 @@ function drush_islandora_batch_scan_preprocess() {
 
   if ($content_models = drush_get_option('content_models', FALSE)) {
     $parameters['content_models'] = explode(',', $content_models);
+  }
+  else {
+    $parameters['content_models'] = array();
   }
 
   // Could use a drush_multiple_choice() or whatever to get the list of
