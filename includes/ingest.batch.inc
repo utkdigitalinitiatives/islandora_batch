@@ -9,7 +9,7 @@ function islandora_batch_get_average($context) {
   }
 }
 
-function islandora_batch_ingest_process(array $parameters, array &$context) {
+function islandora_batch_ingest_process(array $parameters, &$context) {
   extract($parameters);
 
   if (!isset($timeout)) {
@@ -30,23 +30,30 @@ function islandora_batch_ingest_process(array $parameters, array &$context) {
   timer_start(ISLANDORA_BATCH_TIMER_NAME);
 
   // Wait up to a third of our processing time to try to get the ingest lock.
-  if (!lock_wait(ISLANDORA_BATCH_LOCK_NAME, $timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout)) {
+  if (lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) || (!lock_wait(ISLANDORA_BATCH_LOCK_NAME, $timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) {
     // Try ingesting objects that are waiting for children, if all the children are ready.
 
     // Select all children which are NOT fully ingested.
     $child_query = db_select('islandora_batch_queue', 'c')
       ->fields('c')
-      ->condition('c.parent', 'p.id')
-      ->condition('c.state', 3, '<>');
+      ->condition('c.parent', 'p.id');
+    $c_alias = $child_query->leftJoin('islandora_batch_state', 'cs', 'c.id = cs.id');
+    $child_query->condition('cs.state', 3, '<>');
 
     // Select all items which do not have children which are not fully
     //   ingested, but are waiting for children.
-    $part_query = db_select('islandora_batch_queue', 'p')
+    $parent_query = db_select('islandora_batch_queue', 'p')
       ->fields('p')
-      ->condition('p.state', 2)
-      ->notExists($child_query);
+      ->isNotNull('parent');
+    $p_alias = $parent_query->leftJoin('islandora_batch_state', 'ps',
+      'p.id = ps.id AND ps.state = :parent_state', array(
+        ':parent_state' => 2
+      )
+    );
 
-    $finished = islandora_batch_process_results($part_query->execute());
+    $parent_query->notExists($child_query);
+
+    $finished = islandora_batch_process_results($parent_query->execute(), $timeout, $context);
 
     // If the last part finished completely... (due to timeout, if it didn't).
     if ($finished) {
@@ -55,8 +62,11 @@ function islandora_batch_ingest_process(array $parameters, array &$context) {
       // Select other objects which are ready to be processed.
       $other_query = db_select('islandora_batch_queue', 'q')
         ->fields('q')
-        ->condition('state', 1);
-      $finished = islandora_batch_process_results($other_query->execute());
+        ->fields('s', array('state'));
+      $other_alias = $other_query->join('islandora_batch_state', 's',
+        'q.id = s.id AND s.state = :s_state', array(':s_state' => 1));
+
+      $finished = islandora_batch_process_results($other_query->execute(), $timeout, $context);
     }
   }
 
@@ -64,6 +74,9 @@ function islandora_batch_ingest_process(array $parameters, array &$context) {
     // If we're not completely finished but we're ingesting for a limited
     //   amount of time and we do not have enough time to try acquiring the
     //   lock again, inform the batch process so it stops.
+    $context['finished'] = 1;
+  }
+  elseif ($finished) {
     $context['finished'] = 1;
   }
   else {
@@ -82,6 +95,17 @@ function islandora_batch_time_check($timer, $next_op, $timeout) {
 }
 
 /**
+ * A test implementation, to dump contents...
+function islandora_batch_process_results($results, &$context) {
+  dlm($results->getQueryString(), 'Query');
+  foreach ($results as $result) {
+    dlm($result, $result->id);
+  }
+  return TRUE;
+}
+*/
+
+/**
  * Process set of result from the islandora_batch_queue table.
  *
  * @param $results
@@ -92,7 +116,7 @@ function islandora_batch_time_check($timer, $next_op, $timeout) {
  * @return boolean
  *   Whether or not we managed to finish this set.
  */
-function islandora_batch_process_results($results, &$context) {
+function islandora_batch_process_results($results, $timeout, &$context) {
   $average_time = -1;
 
   while((
@@ -101,23 +125,40 @@ function islandora_batch_process_results($results, &$context) {
     ) &&
     $object = $results->fetchAssoc()
   ) {
-
     $start = timer_read(ISLANDORA_BATCH_TIMER_NAME);
 
     // TODO: Process a single object.
     $ingest_object = unserialize($object['data']);
-    $object['state'] = $ingest_object->batch_process();
+
+    if ($object['state'] !== 3) {
+      $object['state'] = $ingest_object->batch_process();
+    }
 
     if ($object['state'] === 3) {
       // Push to backend.
       $ingested_object = islandora_add_object($ingest_object);
-      $object['data'] = serialize($ingested_object);
+      if ($ingested_object) {
+        $object['data'] = serialize($ingested_object);
+      }
+      else {
+        //  Failed to ingest...  Write back to the database, and say it's ready.
+        $object['data'] = serialize($ingest_object);
+        $object['state'] = 1;
+      }
     }
 
     // Update the info in the database.
     db_merge('islandora_batch_queue')
-      ->key('id')
-      ->fields($object)
+      ->key(array('id' => $object['id']))
+      ->fields(array(
+        'data' => $object['data'],
+      ))
+      ->execute();
+    db_merge('islandora_batch_state')
+      ->key(array('id' => $object['id']))
+      ->fields(array(
+        'state' => $object['state'],
+      ))
       ->execute();
 
     $end = timer_read(ISLANDORA_BATCH_TIMER_NAME);

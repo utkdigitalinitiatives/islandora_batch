@@ -1,7 +1,7 @@
 <?php
 
-function islandora_batch_preprocess(IslandoraBatchPreprocessor $preprocessor) {
-
+function islandora_batch_handle_preprocessor(IslandoraBatchPreprocessor $preprocessor) {
+  $preprocessor->preprocess();
 }
 
 /**
@@ -20,7 +20,6 @@ function islandora_batch_set_operations (array $parameters) {
     'init_message' => t('Initializing...'),
     'file' => drupal_get_path('module', 'islandora_batch') . '/includes/ingest.batch.inc',
     'operations' => array(
-      array('islandora_batch_lock'),
       array('islandora_batch_ingest_process', array($parameters)),
     ),
   );

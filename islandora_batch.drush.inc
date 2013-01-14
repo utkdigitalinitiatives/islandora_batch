@@ -20,11 +20,11 @@ function islandora_batch_drush_command() {
         'required' => FALSE,
       ),
     ),
-    'bootstrap' => DRUSH_BOOTSTRAP_LOGIN,
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
   );
 
   $items['islandora_batch_scan_preprocess'] = array(
-    'aliases' => array('ibzp'),
+    'aliases' => array('ibsp'),
     'description' => 'Preprocess assets by scanning either a directory or a ' .
       'ZIP archive.',
     'drupal dependencies' => array('islandora_batch'),
@@ -40,10 +40,11 @@ function islandora_batch_drush_command() {
       'content_models' => array(
         'description' => 'A comma-separated list of content models to assign ' .
           'to the objects.',
-        'required' => FALSE,
+        'value' => 'optional',
+        //'required' => FALSE,
       ),
     ),
-    'bootstrap' => DRUSH_BOOTSTRAP_LOGIN,
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
   );
 
   return $items;
@@ -54,7 +55,7 @@ function islandora_batch_drush_command() {
  *
  * Builds a preprocessor, and passes it off to a preprocessor handler.
  */
-function drush_islandora_batch_islandora_batch_scan_preprocess($args) {
+function drush_islandora_batch_scan_preprocess() {
   // Build one of our preprocessors.
   $connection = islandora_get_tuque_connection();
   $parameters = array(
@@ -64,11 +65,10 @@ function drush_islandora_batch_islandora_batch_scan_preprocess($args) {
   );
   // Could use a drush_multiple_choice() or whatever to get the list of
   //   content models, if none were provided?
-
   $preprocessor = new IslandoraScanBatch($connection, $parameters);
 
   // Pass the preprocessor off to run.
-  $preprocessed = islandora_batch_preprocess($preprocessor);
+  $preprocessed = islandora_batch_handle_preprocessor($preprocessor);
 }
 
 /**
@@ -77,10 +77,12 @@ function drush_islandora_batch_islandora_batch_scan_preprocess($args) {
  * Ingests for the specified amount of time, if there is anything already
  * preprocessed.
  */
-function drush_islandora_batch_islandora_batch_ingest($args) {
+function drush_islandora_batch_ingest($args) {
   $parameters = array(
     'timeout' => drush_get_option('timeout', NULL),
   );
+
+  $parameters = array_filter($parameters);
 
   islandora_batch_set_operations($parameters);
 

@@ -7,13 +7,13 @@ abstract class IslandoraBatchPreprocessor {
    * @var array $parameters
    *   Should be populated with the parameters passed in.
    */
-  protected array $parameters = array();
+  protected $parameters = array();
 
   /**
    * @var IslandoraTuque $connection
    *   An IslandoraTuque object from which we can obtain IDs.
    */
-  protected IslandoraTuque $connection; 
+  protected $connection; 
 
   /**
    * Constructor must be able to recieve an associative array of parameters.
@@ -29,9 +29,7 @@ abstract class IslandoraBatchPreprocessor {
     $this->parameters = $parameters;
     $this->connection = $connection;
 
-    $timeout = $this->parameters['timeout'];
-
-    $lock = lock_acquire('islandora_batch_processing', $timeout);
+    $lock = lock_acquire('islandora_batch_processing');
     if (!$lock) {
       throw new IslandoraBatchFailedToLockException(
         t('Failed to acquire lock for batch ingest.')
@@ -57,7 +55,7 @@ abstract class IslandoraBatchPreprocessor {
     // Not specifying a namespace should result in one from the default
     //   declared in the fedora.fcfg ("changeme" by default).
     // TODO: Implement some form of caching, so we can get multiple at a time.
-    return $connection->repository->api->m->getNextPid();
+    return $this->connection->repository->api->m->getNextPid();
   }
 
   /**

@@ -115,7 +115,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   /**
    * Perform preprocessing of the scanned resources.
    */
-  protected function preprocess() {
+  public function preprocess() {
     $files = $this->scan();
 
     if ($files === FALSE) {
@@ -175,14 +175,38 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
     $this->resources = array();
   }
 
+  protected static function get_mime($file_object) {
+    static $mime_detect = NULL;
+    if ($mime_detect === NULL) {
+      $mime_detect = new MimeDetect();
+    }
+
+    return $mime_detect->getMimetype($file_object->filename);
+  }
+
   public function batch_process() {
-    // TODO: Use object_info to create some datastreams.
+    // Use object_info to create some datastreams.
     $this->label = $this->get_title();
     $this->get_mods();
     $this->get_dc();
 
+    if (!isset($this['OBJ'])) {
+      $meta = array_map(NULL, array('xml', 'mrc'));
+      $other = array_diff_key($this->object_info, $meta);
+
+      if ($obj = reset($other)) {
+        $obj_datastream = $this->constructDatastream('OBJ');
+        // Figure out the mimetype.
+        $obj_datastream->mimetype = static::get_mime($obj);
+        $obj_datastream->label = 'OBJ Datastream';
+        $obj_datastream->setContentFromFile($obj->uri, FALSE);
+
+        $this->ingestDatastream($obj_datastream);
+      }
+    }
+
     // XXX: Should probably use constants...
-    return 2;
+    return 3;
   }
 
   /**
@@ -243,13 +267,15 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
     if (!isset($this['MODS'])) {
       $dir = drupal_get_path('module', 'islandora_batch');
       // TODO: Create the MODS datastream on this object.
-      $mods_datastream = $this->constructDatastream('MODS');
+      $mods_datastream = $this->constructDatastream('MODS', 'X');
+      $mods_datastream->mimetype = 'text/xml';
+      $mods_datastream->label = 'MODS Record';
 
       // If we have an XML stream which is:
       if (isset($this->object_info['xml'])) {
         $xml = file_get_contents($this->object_info['xml']->uri);
 
-        if ($xml) {
+         if ($xml) {
           $s_xml = new SimpleXMLElement($xml);
       //   MODS, set
           if ($s_xml->getName() == 'mods') {
@@ -344,10 +370,12 @@ EOXML;
   protected function get_dc() {
     if (!isset($this['DC'])) {
       // TODO: Create the DC datastream on this object.
-      $dc_datastream = $this->constructDatastream('DC');
+      $dc_datastream = $this->constructDatastream('DC', 'X');
+      $dc_datastream->mimetype = 'text/xml';
+      $dc_datastream->label = 'DC Record';
 
       if (isset($this->object_info['xml'])) {
-        $xml = file_get_content($this->object_info['xml']->uri);
+        $xml = file_get_contents($this->object_info['xml']->uri);
 
         if ($xml) {
           $s_xml = new SimpleXMLElement($xml);
@@ -363,11 +391,11 @@ EOXML;
         // XXX: Might want to make this use a file, instead of staging the DC
         //   in the database table (inside the object we serialize).
         $new_dc = static::run_xsl_transform(array(
-          'xsl' => drupal_get_path('module', 'islandora_batch') . '/xsl/mods_to_dc.xsl',
+          'xsl' => drupal_get_path('module', 'islandora_batch') . '/transforms/mods_to_dc.xsl',
           'input' => $this->get_mods(),
         ));
         if ($new_dc) {
-          $ds_datastream->content = $new_dc;
+          $dc_datastream->content = $new_dc;
         }
       }
 

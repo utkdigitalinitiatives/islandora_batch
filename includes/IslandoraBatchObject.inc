@@ -5,7 +5,7 @@
  *
  * Implementing classes should subclass some version of FedoraObject, so 
  */
-abstract class IslandoraBatchInterface extends IslandoraNewFedoraObject {
+abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
   /**
    * @return int
    *   Used to determine the initial state of the object in the queue.
