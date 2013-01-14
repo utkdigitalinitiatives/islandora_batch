@@ -43,6 +43,21 @@ function islandora_batch_drush_command() {
         'value' => 'optional',
         //'required' => FALSE,
       ),
+      'parent' => array(
+        'description' => 'The collection to which the generated items should ' .
+          'be added. Defaults to the root Islandora repository PID.',
+        'value' => 'optional'
+      ),
+      'parent_relationship_uri' => array(
+        'description' => 'The namespace URI of the relationship to the parent.' .
+          ' Defaults to "info:fedora/fedora-system:def/relations-external#".',
+        'value' => 'optional',
+      ),
+      'parent_relationship_pred' => array(
+        'description' => 'The predicate of the relationship to the parent. ' .
+          'Defaults to "isMemberOfCollection".',
+        'value' => 'optional',
+      ),
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
   );
@@ -61,8 +76,15 @@ function drush_islandora_batch_scan_preprocess() {
   $parameters = array(
     'type' => drush_get_option('type'),
     'target' => drush_get_option('target'),
-    'content_models' => drush_get_option('content_models', array()),
+    'parent' => drush_get_option('parent', variable_get('islandora_repository_pid', 'islandora:root')),
+    'parent_relationship_uri' => drush_get_option('parent_relationship_uri', 'info:fedora/fedora-system:def/relations-external#'),
+    'parent_relationship_pred' => drush_get_option('parent_relationship_pred', 'isMemberOfCollection'),
   );
+
+  if ($content_models = drush_get_option('content_models', FALSE)) {
+    $parameters['content_models'] = explode(',', $content_models);
+  }
+
   // Could use a drush_multiple_choice() or whatever to get the list of
   //   content models, if none were provided?
   $preprocessor = new IslandoraScanBatch($connection, $parameters);

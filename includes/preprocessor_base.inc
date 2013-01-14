@@ -22,8 +22,8 @@ abstract class IslandoraBatchPreprocessor {
    *   An associative array of parameters for the batch process. These will
    *   probably just be the result of a simple transformation from the
    *   command line, or something which could have been constructed from a
-   *   form. (Some) base parameter(s):
-   *   - timeout: The process should end after this length of time.
+   *   form.
+   *   Available parameters are from the particular concrete implementation.
    */
   public function __construct(IslandoraTuque $connection, array $parameters) {
     $this->parameters = $parameters;
@@ -105,14 +105,6 @@ abstract class IslandoraBatchPreprocessor {
   /**
    * Add the relationship to a top-level object.
    */
-  protected function add_membership_relationship(AbstractFedoraObject $object) {
-    $collection = isset($this->parameters['collection'])?
-      $this->parameters['collection']:
-      variable_get('islandora_repository_pid', 'islandora:root');
-    $predicate = 'isMemberOfCollection';
-    $uri = FEDORA_RELS_EXT_URI;
-
-    $object->relationships->add($uri, $predicate, $collection);
-  }
+  abstract protected function add_relationships(AbstractFedoraObject $object);
 }
 

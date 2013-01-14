@@ -24,6 +24,13 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   }
 
   /**
+   * Get content models.
+   */
+  private function get_content_models() {
+    return $this->parameters['content_models'];
+  }
+
+  /**
    * Get the target resource.
    */
   protected function get_target() {
@@ -44,7 +51,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
    * Scan the directory with file_scan_directory().
    */
   protected function scan_directory() {
-    $files = file_scan_directory($this->get_target());
+    $files = file_scan_directory($this->get_target(), '/.*/');
     return $files;
   }
 
@@ -108,8 +115,18 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
     return "IslandoraScanBatchObject";
   }
 
-  protected function add_content_model_relationships(IslandoraBatchObject $object) {
-    $object->models = $this->content_models;
+  private function add_content_model_relationships(AbstractFedoraObject $object) {
+    $object->models = $this->parameters['content_models'];
+  }
+
+  protected function add_relationships(AbstractFedoraObject $object) {
+    $collection = $this->parameters['parent'];
+    $predicate = $this->parameters['parent_relationship_pred'];
+    $uri = $this->parameters['parent_relationship_uri'];
+
+    $object->relationships->add($uri, $predicate, $collection);
+
+    $this->add_content_model_relationships($object);
   }
 
   /**
@@ -132,7 +149,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
     foreach ($grouped as $base_name => $object_info) {
       $ingest_object = new $object_class($this->connection, $base_name, $object_info);
 
-      $this->add_membership_relationship($ingest_object);
+      $this->add_relationships($ingest_object);
 
       $id = $this->add_to_database($ingest_object, $ingest_object->get_resources());
 
