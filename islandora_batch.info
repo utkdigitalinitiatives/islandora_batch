@@ -4,8 +4,8 @@ package = Islandora
 version = 7.x-dev
 core = 7.x
 dependencies[] = islandora
-files[] = includes/Preprocessor.inc
-files[] = includes/IslandoraBatchObject.inc
-files[] = includes/IslandoraScanBatch.inc
+files[] = includes/preprocessor_base.inc
+files[] = includes/islandora_batch_object.inc
+files[] = includes/islandora_scan_batch.inc
 php = 5.3
 
