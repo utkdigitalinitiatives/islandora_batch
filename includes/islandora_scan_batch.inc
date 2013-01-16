@@ -12,15 +12,14 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
    *
    * @return array
    *   An associative array of stdClass objects representing files. Array keys
-   *   are URIs, and the objects properties include:
-   *   - uri: A string containing the URI of the resource (also used a the
-   *     array key).
-   *   - filename: The full filename.
+   *   are URIs relative to the "target", and the objects properties include:
+   *   - uri: A string containing the complete URI of the resource.
+   *   - filename: The filename.
    *   - name: The filename without its extension.
    */
   protected function scan() {
     $method = "scan_" . $this->get_target_type();
-    return $this->$method();
+    return $this->$method($this->get_target());
   }
 
   /**
@@ -50,18 +49,25 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   /**
    * Scan the directory with file_scan_directory().
    */
-  protected function scan_directory() {
-    $files = file_scan_directory($this->get_target(), '/.*/');
+  protected function scan_directory($target) {
+    $files = array();
+    $target_components = explode(DIRECTORY_SEPARATOR, $target);
+    $target = implode(DIRECTORY_SEPARATOR, $target_components);
+    $target_length = strlen($target) + 1;
+    foreach (file_scan_directory($target, '/.*/') as $uri => $value) {
+      $files[substr($uri, $target_length)] = $value;
+    }
+
     return $files;
   }
 
   /**
    * Generate output analogous to file_scan_directory().
    */
-  protected function scan_zip() {
+  protected function scan_zip($target) {
     $zip = new ZipArchive();
 
-    $zip_file = drupal_realpath($this->get_target());
+    $zip_file = drupal_realpath($target);
     if (($error = $zip->open($zip_file)) !== TRUE) {
       return FALSE;
     }
@@ -76,9 +82,9 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
       if (strpos($path_info['dirname'], '__MACOSX') === FALSE) {
         $file_entry = new stdClass();
         $file_entry->uri = "zip://$zip_file#$name";
-        $file_entry->filename = $name;
+        $file_entry->filename = $path_info['base$name'];
         $file_entry->name = $path_info['filename'];
-        $info[$file_entry->uri] = $file_entry;
+        $info[$name] = $file_entry;
       }
     }
 
@@ -144,40 +150,43 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
       // TODO: Pop a warning.
     }
 
+    $added = array();
+
     $grouped = $this->group_files($files);
+
     $object_class = static::get_object_class();
     foreach ($grouped as $base_name => $object_info) {
       $ingest_object = new $object_class($this->connection, $base_name, $object_info);
 
+      //XXX: On second thought, this should probably happen inside the batch...
+      //  ...  working with XML can be slow... Then again, we have to be able
+      //  to pass this information to everything anyway...
       $this->add_relationships($ingest_object);
 
-      $id = $this->add_to_database($ingest_object, $ingest_object->get_resources());
+      $this->add_to_database($ingest_object, $ingest_object->get_resources());
+      $added[] = $ingest_object;
 
       // XXX: Might be better to have this actually handled as another "preprocessor",
       //   so arbitrary "tree" structures might be built?
-      foreach ($this->get_children($id, $object_info) as $child) {
-        $this->add_to_database($ingest_object, $child->get_resources(), $id);
-      }
+      $added = array_merge($added, $this->preprocess_children($ingest_object));
     }
+
+    return $added;
   }
 
   /**
-   * Get an array containing a number of ingest objects representing the children.
-   *
-   * Only (currently) used in a subclass.
-   *
-   * @param string $id
-   *   A string containing the backend-id of the parent.
-   * @param array $object_info
-   *   The information about the parent, from a single "group".
-   *
-   * @return array
-   *   An array of IslandoraBatchObjects.
+   * Recursively attempt to preprocess children.
    */
-  protected function get_children($id, $object_info) {
-    // TODO: Get an array containing a number of ingest objects representing
-    //  the children, given the information about the parent.
-    return array();
+  protected function preprocess_children(IslandoraBatchObject $object) {
+    $to_return = array();
+
+    foreach ($object->get_children($this->connection) as $child) {
+      $this->add_to_database($child, $child->get_resources(), $object->id);
+      $to_return = array_merge($to_return, $this->preprocess_children($child));
+      $to_return[] = $child;
+    }
+
+    return $to_return;
   }
 }
 
@@ -240,7 +249,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
    */
   protected function get_title() {
     if (!isset($this->label) || empty($this->label)) {
-      // TODO: Acquire a title.
+      //  Acquire a title.
       $mods = $this->get_mods();
       if ($mods) {
         $mods_doc = new DOMDocument();
@@ -292,7 +301,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
       if (isset($this->object_info['xml'])) {
         $xml = file_get_contents($this->object_info['xml']->uri);
 
-         if ($xml) {
+        if ($xml) {
           $s_xml = new SimpleXMLElement($xml);
       //   MODS, set
           if ($s_xml->getName() == 'mods') {

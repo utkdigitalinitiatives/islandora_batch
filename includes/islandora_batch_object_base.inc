@@ -35,5 +35,20 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    * Should be in the format used by IslandoraBatchPreprocessor::add_to_database().
    */
   abstract public function get_resources();
+
+  /**
+   * Get the child objects, for those content models which require them.
+   *
+   * Things like books and newspapers need two different layers of objects...
+   * the definition of this function should let them be reliably created.
+   *
+   * Should only be used during preprocessing.
+   *
+   * @return array
+   *   An array of IslandoraBatchObjects, which will be put into the database 
+   */
+  public function get_children(IslandoraTuque $connection) {
+    return array();
+  }
 }
 

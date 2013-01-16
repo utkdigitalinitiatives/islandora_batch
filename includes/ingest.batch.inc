@@ -34,39 +34,17 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     // Try ingesting objects that are waiting for children, if all the children are ready.
 
     // Select all children which are NOT fully ingested.
-    $child_query = db_select('islandora_batch_queue', 'c')
-      ->fields('c')
-      ->condition('c.parent', 'p.id');
-    $c_alias = $child_query->leftJoin('islandora_batch_state', 'cs', 'c.id = cs.id');
-    $child_query->condition('cs.state', 3, '<>');
-
-    // Select all items which do not have children which are not fully
-    //   ingested, but are waiting for children.
-    $parent_query = db_select('islandora_batch_queue', 'p')
-      ->fields('p')
-      ->isNotNull('parent');
-    $p_alias = $parent_query->leftJoin('islandora_batch_state', 'ps',
-      'p.id = ps.id AND ps.state = :parent_state', array(
-        ':parent_state' => 2
-      )
-    );
-
-    $parent_query->notExists($child_query);
-
-    $finished = islandora_batch_process_results($parent_query->execute(), $timeout, $context);
+    $finished = islandora_batch_process_results(islandora_batch_get_parents(), $timeout, $context);
 
     // If the last part finished completely... (due to timeout, if it didn't).
     if ($finished) {
       // ... Continue processing.
+      $finished = islandora_batch_process_results(islandora_batch_get_ready(), $timeout, $context);
+    }
 
-      // Select other objects which are ready to be processed.
-      $other_query = db_select('islandora_batch_queue', 'q')
-        ->fields('q')
-        ->fields('s', array('state'));
-      $other_alias = $other_query->join('islandora_batch_state', 's',
-        'q.id = s.id AND s.state = :s_state', array(':s_state' => 1));
-
-      $finished = islandora_batch_process_results($other_query->execute(), $timeout, $context);
+    if ($finished) {
+      // Attempt to process any parents which might now be ready to go, if we have any time left.
+      $finished = islandora_batch_process_results(islandora_batch_get_parents(), $timeout, $context);
     }
   }
 
@@ -85,6 +63,40 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
   }
 
   timer_stop(ISLANDORA_BATCH_TIMER_NAME);
+}
+
+function islandora_batch_get_parents() {
+  // Select all children which are NOT fully ingested.
+  $child_query = db_select('islandora_batch_queue', 'c')
+    ->fields('c')
+    ->condition('c.parent', 'p.id');
+  $c_alias = $child_query->join('islandora_batch_state', 'cs', 'c.id = cs.id');
+  $child_query->condition('cs.state', 3, '<>');
+
+  // Select all items which do not have children which are not fully
+  //   ingested, but are waiting for children.
+  $parent_query = db_select('islandora_batch_queue', 'p')
+    ->fields('p')
+    ->fields('ps', array('state'));
+  $p_alias = $parent_query->join('islandora_batch_state', 'ps',
+    'p.id = ps.id AND ps.state = :parent_state', array(
+      ':parent_state' => 2
+    )
+  );
+
+  $parent_query->notExists($child_query);
+  return $parent_query->execute();
+}
+
+function islandora_batch_get_ready() {
+  // Select other objects which are ready to be processed.
+  $other_query = db_select('islandora_batch_queue', 'q')
+    ->fields('q')
+    ->fields('s', array('state'));
+  $other_alias = $other_query->join('islandora_batch_state', 's',
+    'q.id = s.id AND s.state = :s_state', array(':s_state' => 1));
+
+  return $other_query->execute();
 }
 
 /**
