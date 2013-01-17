@@ -15,7 +15,7 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    *   - 3: Fully processed... Push to the back-end.
    */
   public function initial_batch_state() {
-    return 1;
+    return ISLANDORA_BATCH_STATE__READY;
   }
 
   /**

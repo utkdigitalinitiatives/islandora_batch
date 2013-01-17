@@ -231,8 +231,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
       }
     }
 
-    // XXX: Should probably use constants...
-    return 3;
+    return ISLANDORA_BATCH_STATE__DONE;
   }
 
   /**

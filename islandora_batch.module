@@ -1,7 +1,12 @@
 <?php
 
+define('ISLANDORA_BATCH_STATE__NOT_READY', 0);
+define('ISLANDORA_BATCH_STATE__READY', 1);
+define('ISLANDORA_BATCH_STATE__PENDING_CHILDREN', 2);
+define('ISLANDORA_BATCH_STATE__DONE', 3);
+
 function islandora_batch_handle_preprocessor(IslandoraBatchPreprocessor $preprocessor) {
-  $preprocessor->preprocess();
+  return $preprocessor->preprocess();
 }
 
 /**

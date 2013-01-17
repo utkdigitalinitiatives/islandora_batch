@@ -71,7 +71,7 @@ function islandora_batch_get_parents() {
     ->fields('c')
     ->condition('c.parent', 'p.id');
   $c_alias = $child_query->join('islandora_batch_state', 'cs', 'c.id = cs.id');
-  $child_query->condition('cs.state', 3, '<>');
+  $child_query->condition('cs.state', ISLANDORA_BATCH_STATE__DONE, '<>');
 
   // Select all items which do not have children which are not fully
   //   ingested, but are waiting for children.
@@ -80,7 +80,7 @@ function islandora_batch_get_parents() {
     ->fields('ps', array('state'));
   $p_alias = $parent_query->join('islandora_batch_state', 'ps',
     'p.id = ps.id AND ps.state = :parent_state', array(
-      ':parent_state' => 2
+      ':parent_state' => ISLANDORA_BATCH_STATE__PENDING_CHILDREN
     )
   );
 
@@ -94,7 +94,7 @@ function islandora_batch_get_ready() {
     ->fields('q')
     ->fields('s', array('state'));
   $other_alias = $other_query->join('islandora_batch_state', 's',
-    'q.id = s.id AND s.state = :s_state', array(':s_state' => 1));
+    'q.id = s.id AND s.state = :s_state', array(':s_state' => ISLANDORA_BATCH_STATE__READY));
 
   return $other_query->execute();
 }
@@ -142,11 +142,11 @@ function islandora_batch_process_results($results, $timeout, &$context) {
     // TODO: Process a single object.
     $ingest_object = unserialize($object['data']);
 
-    if ($object['state'] !== 3) {
+    if ($object['state'] !== ISLANDORA_BATCH_STATE__DONE) {
       $object['state'] = $ingest_object->batch_process();
     }
 
-    if ($object['state'] === 3) {
+    if ($object['state'] === ISLANDORA_BATCH_STATE__DONE) {
       // Push to backend.
       $ingested_object = islandora_add_object($ingest_object);
       if ($ingested_object) {
@@ -155,7 +155,7 @@ function islandora_batch_process_results($results, $timeout, &$context) {
       else {
         //  Failed to ingest...  Write back to the database, and say it's ready.
         $object['data'] = serialize($ingest_object);
-        $object['state'] = 1;
+        $object['state'] = ISLANDORA_BATCH_STATE__READY;
       }
     }
 
