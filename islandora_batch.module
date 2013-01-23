@@ -5,6 +5,9 @@ define('ISLANDORA_BATCH_STATE__READY', 1);
 define('ISLANDORA_BATCH_STATE__PENDING_CHILDREN', 2);
 define('ISLANDORA_BATCH_STATE__DONE', 3);
 
+/**
+ * Implements hook_menu().
+ */
 function islandora_batch_menu() {
   $items = array();
 
