@@ -102,7 +102,7 @@ function drush_islandora_batch_scan_preprocess() {
  * Ingests for the specified amount of time, if there is anything already
  * preprocessed.
  */
-function drush_islandora_batch_ingest($args) {
+function drush_islandora_batch_ingest() {
   $parameters = array(
     'timeout' => drush_get_option('timeout', NULL),
   );
