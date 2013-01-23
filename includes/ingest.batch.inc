@@ -55,6 +55,7 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     $context['finished'] = 1;
   }
   elseif ($finished) {
+    // We finished the queue of objects.
     $context['finished'] = 1;
   }
   else {
@@ -69,8 +70,10 @@ function islandora_batch_get_parents() {
   // Select all children which are NOT fully ingested.
   $child_query = db_select('islandora_batch_queue', 'c')
     ->fields('c')
-    ->condition('c.parent', 'p.id');
-  $c_alias = $child_query->join('islandora_batch_state', 'cs', 'c.id = cs.id');
+    ->where('c.parent = p.id')
+    ->isNotNull('c.parent');
+  $c_alias = $child_query->join('islandora_batch_state', 'cs',
+    'c.id = cs.id');
   $child_query->condition('cs.state', ISLANDORA_BATCH_STATE__DONE, '<>');
 
   // Select all items which do not have children which are not fully
@@ -79,12 +82,11 @@ function islandora_batch_get_parents() {
     ->fields('p')
     ->fields('ps', array('state'));
   $p_alias = $parent_query->join('islandora_batch_state', 'ps',
-    'p.id = ps.id AND ps.state = :parent_state', array(
-      ':parent_state' => ISLANDORA_BATCH_STATE__PENDING_CHILDREN
-    )
-  );
+    'p.id = ps.id');
+  $parent_query->condition('state', ISLANDORA_BATCH_STATE__PENDING_CHILDREN);
 
   $parent_query->notExists($child_query);
+
   return $parent_query->execute();
 }
 
@@ -108,14 +110,15 @@ function islandora_batch_time_check($timer, $next_op, $timeout) {
 
 /**
  * A test implementation, to dump contents...
-function islandora_batch_process_results($results, &$context) {
+ */
+function test_islandora_batch_process_results($results, $timeout, &$context) {
   dlm($results->getQueryString(), 'Query');
   foreach ($results as $result) {
     dlm($result, $result->id);
   }
   return TRUE;
 }
-*/
+//*/
 
 /**
  * Process set of result from the islandora_batch_queue table.
