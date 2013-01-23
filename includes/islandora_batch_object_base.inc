@@ -50,5 +50,12 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
   public function get_children(IslandoraTuque $connection) {
     return array();
   }
+
+  /**
+   * Add relationships (during preprocessing).
+   *
+   * Add relationships to the object.
+   */
+  abstract public function add_relationships();
 }
 

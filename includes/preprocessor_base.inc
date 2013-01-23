@@ -101,10 +101,5 @@ abstract class IslandoraBatchPreprocessor {
 
     return $object->id;
   }
-
-  /**
-   * Add the relationship to a top-level object.
-   */
-  abstract protected function add_relationships(AbstractFedoraObject $object);
 }
 

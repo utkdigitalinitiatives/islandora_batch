@@ -23,13 +23,6 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   }
 
   /**
-   * Get content models.
-   */
-  private function get_content_models() {
-    return $this->parameters['content_models'];
-  }
-
-  /**
    * Get the target resource.
    */
   protected function get_target() {
@@ -121,20 +114,6 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
     return "IslandoraScanBatchObject";
   }
 
-  private function add_content_model_relationships(AbstractFedoraObject $object) {
-    $object->models = $this->parameters['content_models'];
-  }
-
-  protected function add_relationships(AbstractFedoraObject $object) {
-    $collection = $this->parameters['parent'];
-    $predicate = $this->parameters['parent_relationship_pred'];
-    $uri = $this->parameters['parent_relationship_uri'];
-
-    $object->relationships->add($uri, $predicate, $collection);
-
-    $this->add_content_model_relationships($object);
-  }
-
   /**
    * Perform preprocessing of the scanned resources.
    */
@@ -156,12 +135,8 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
 
     $object_class = static::get_object_class();
     foreach ($grouped as $base_name => $object_info) {
-      $ingest_object = new $object_class($this->connection, $base_name, $object_info);
-
-      //XXX: On second thought, this should probably happen inside the batch...
-      //  ...  working with XML can be slow... Then again, we have to be able
-      //  to pass this information to everything anyway...
-      $this->add_relationships($ingest_object);
+      $ingest_object = new $object_class($this->connection, $base_name, $object_info, $this->parameters);
+      $ingest_object->add_relationships();
 
       $this->add_to_database($ingest_object, $ingest_object->get_resources());
       $added[] = $ingest_object;
@@ -191,14 +166,15 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
 }
 
 class IslandoraScanBatchObject extends IslandoraBatchObject {
-  protected $base_name, $object_info;
+  protected $base_name, $object_info, $preprocessor_parameters;
 
-  public function __construct(IslandoraTuque $connection, $base_name, $object_info) {
+  public function __construct(IslandoraTuque $connection, $base_name, $object_info, $preprocessor_parameters) {
     parent::__construct(NULL, $connection->repository);
 
     $this->base_name = $base_name;
     $this->object_info = $object_info;
     $this->resources = array();
+    $this->preprocessor_parameters = $preprocessor_parameters;
   }
 
   protected static function get_mime($file_object) {
@@ -428,5 +404,24 @@ EOXML;
     }
 
     return $this['DC']->content;
+  }
+
+  /**
+   * Add collection and content model relationships.
+   */
+  public function add_relationships() {
+    $collection = $this->preprocessor_parameters['parent'];
+    $predicate = $this->preprocessor_parameters['parent_relationship_pred'];
+    $uri = $this->preprocessor_parameters['parent_relationship_uri'];
+
+    $this->relationships->add($uri, $predicate, $collection);
+    $this->add_content_model_relationships();
+  }
+
+  /**
+   * Add the content model relationship(s).
+   */
+  protected function add_content_model_relationships() {
+    $this->models = $this->preprocessor_parameters['content_models'];
   }
 }
