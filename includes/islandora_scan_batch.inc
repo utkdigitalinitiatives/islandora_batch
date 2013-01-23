@@ -136,10 +136,6 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
     $object_class = static::get_object_class();
     foreach ($grouped as $base_name => $object_info) {
       $ingest_object = new $object_class($this->connection, $base_name, $object_info, $this->parameters);
-      $ingest_object->add_relationships();
-
-      $this->add_to_database($ingest_object, $ingest_object->get_resources());
-      $added[] = $ingest_object;
 
       // XXX: Might be better to have this actually handled as another "preprocessor",
       //   so arbitrary "tree" structures might be built?
@@ -152,13 +148,15 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   /**
    * Recursively attempt to preprocess children.
    */
-  protected function preprocess_children(IslandoraBatchObject $object) {
+  protected function preprocess_children(IslandoraBatchObject $object, $parent = NULL) {
     $to_return = array();
 
+    $object->add_relationships();
+    $this->add_to_database($object, $object->get_resources(), $parent);
+    $to_return[] = $object;
+
     foreach ($object->get_children($this->connection) as $child) {
-      $this->add_to_database($child, $child->get_resources(), $object->id);
-      $to_return = array_merge($to_return, $this->preprocess_children($child));
-      $to_return[] = $child;
+      $to_return = array_merge($to_return, $this->preprocess_children($child, $object->id));
     }
 
     return $to_return;
