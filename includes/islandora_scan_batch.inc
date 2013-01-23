@@ -342,7 +342,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
         $absolute = realpath($dir);
 
         // The command to run.
-        $command = "$java -cp $absolute/transforms/marcxml/marcxml.jar:$absolute/transforms/marcxml/marc4j.jar $temp_file_marc $temp_file_mods";
+        $command = "$java -cp $absolute/transforms/marcxml/marcxml.jar:$absolute/transforms/marcxml/marc4j.jar gov.loc.marcxml.MARC2MODS $temp_file_marc $temp_file_mods";
 
         // Run the command.
         $proc = popen($command, 'r');
