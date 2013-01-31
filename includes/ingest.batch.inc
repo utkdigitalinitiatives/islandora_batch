@@ -9,8 +9,39 @@ function islandora_batch_get_average($context) {
   }
 }
 
+/**
+ * Batch operation to run a preprocessor.
+ */
+function islandora_batch_ingest_preprocess($preprocessor, &$context) {
+  $context['results']['ingest_set'] = islandora_batch_handle_preprocessor($preprocessor);
+  $context['message'] = t('Preprocessed target file.');
+}
+
+/**
+ * Batch operation to ingest from the queue.
+ *
+ * @param array parameters
+ *   An associative array of parameters to affect processing. Includes:
+ *   - ingest_set: An array of IslandoraNewFedoraObjects to affect (Can
+ *     instead be included as $context['results']['ingest_set']). This array of
+ *     objects is used to limit the results when querying agains the queue.
+ *   - timeout: An amount of time in seconds. If provided, we will only ingest
+ *     until this amount of time is reached (or we think we'll exceed it,
+ *     based on a running average).
+ * @param $context
+ *   The batch context.
+ */
 function islandora_batch_ingest_process(array $parameters, &$context) {
   extract($parameters);
+
+  if (!isset($ingest_set)) {
+    if (isset($context['results']['ingest_set'])) {
+      $ingest_set = $context['results']['ingest_set'];
+    }
+    else {
+      $ingest_set = NULL;
+    }
+  }
 
   if (!isset($timeout)) {
     $max_exec = intval(ini_get('max_execution_time'));
@@ -34,17 +65,17 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     // Try ingesting objects that are waiting for children, if all the children are ready.
 
     // Select all children which are NOT fully ingested.
-    $finished = islandora_batch_process_results(islandora_batch_get_parents(), $timeout, $context);
+    $finished = islandora_batch_process_results(islandora_batch_get_parents($ingest_set), $timeout, $context);
 
     // If the last part finished completely... (due to timeout, if it didn't).
     if ($finished) {
       // ... Continue processing.
-      $finished = islandora_batch_process_results(islandora_batch_get_ready(), $timeout, $context);
+      $finished = islandora_batch_process_results(islandora_batch_get_ready($ingest_set), $timeout, $context);
     }
 
     if ($finished) {
       // Attempt to process any parents which might now be ready to go, if we have any time left.
-      $finished = islandora_batch_process_results(islandora_batch_get_parents(), $timeout, $context);
+      $finished = islandora_batch_process_results(islandora_batch_get_parents($ingest_set), $timeout, $context);
     }
   }
 
@@ -66,7 +97,26 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
   timer_stop(ISLANDORA_BATCH_TIMER_NAME);
 }
 
-function islandora_batch_get_parents() {
+/**
+ * Require a query to contain an ID in a set, if the set is provided.
+ *
+ * @param $query
+ *   A select query to which we may add a condition.
+ * @param array $ingest_set
+ *   An array of object which should exist in the database, to restrict queries.
+ *   (Used to allow a set of preprocessed objects to be ingested immediatedly
+ *   from the web front-end).
+ */
+function islandora_batch_restrict_to_set($query, $table_alias, $ingest_set) {
+  if ($ingest_set) {
+    $query->condition("$table_alias.id", array_map(function ($o) {return $o->id;}, $ingest_set));
+  }
+}
+
+/**
+ * Get all parents which are ready to go (in the given set, if populated).
+ */
+function islandora_batch_get_parents($ingest_set) {
   // Select all children which are NOT fully ingested.
   $child_query = db_select('islandora_batch_queue', 'c')
     ->fields('c')
@@ -81,6 +131,9 @@ function islandora_batch_get_parents() {
   $parent_query = db_select('islandora_batch_queue', 'p')
     ->fields('p')
     ->fields('ps', array('state'));
+
+  islandora_batch_restrict_to_set($parent_query, 'p', $ingest_set);
+
   $p_alias = $parent_query->join('islandora_batch_state', 'ps',
     'p.id = ps.id');
   $parent_query->condition('state', ISLANDORA_BATCH_STATE__PENDING_CHILDREN);
@@ -90,11 +143,17 @@ function islandora_batch_get_parents() {
   return $parent_query->execute();
 }
 
-function islandora_batch_get_ready() {
+/**
+ * Get all objects which are ready to be ingested (in the given set, if populated).
+ */
+function islandora_batch_get_ready($ingest_set) {
   // Select other objects which are ready to be processed.
   $other_query = db_select('islandora_batch_queue', 'q')
     ->fields('q')
     ->fields('s', array('state'));
+
+  islandora_batch_restrict_to_set($other_query, 'q', $ingest_set);
+
   $other_alias = $other_query->join('islandora_batch_state', 's',
     'q.id = s.id AND s.state = :s_state', array(':s_state' => ISLANDORA_BATCH_STATE__READY));
 
@@ -118,7 +177,6 @@ function test_islandora_batch_process_results($results, $timeout, &$context) {
   }
   return TRUE;
 }
-//*/
 
 /**
  * Process set of result from the islandora_batch_queue table.
@@ -154,6 +212,7 @@ function islandora_batch_process_results($results, $timeout, &$context) {
       $ingested_object = islandora_add_object($ingest_object);
       if ($ingested_object) {
         $object['data'] = serialize($ingested_object);
+        $context['message'] = t('Ingested %pid.', array('%pid' => $ingested_object->id));
       }
       else {
         //  Failed to ingest...  Write back to the database, and say it's ready.

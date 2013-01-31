@@ -72,10 +72,11 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
       $name = $zip->getNameIndex($i);
       $path_info = pathinfo($name);
 
-      if (strpos($path_info['dirname'], '__MACOSX') === FALSE) {
+      // Avoid creating entries for directories and some weird Mac stuff...
+      if (isset($path_info['extension']) && strpos($path_info['dirname'], '__MACOSX') === FALSE) {
         $file_entry = new stdClass();
         $file_entry->uri = "zip://$zip_file#$name";
-        $file_entry->filename = $path_info['base$name'];
+        $file_entry->filename = $path_info['basename'];
         $file_entry->name = $path_info['filename'];
         $info[$name] = $file_entry;
       }

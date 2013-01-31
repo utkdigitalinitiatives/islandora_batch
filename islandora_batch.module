@@ -37,15 +37,21 @@ function islandora_batch_handle_preprocessor(IslandoraBatchPreprocessor $preproc
  * Queries the database for preprocessed entries, and attempts to ingest them.
  */
 function islandora_batch_set_operations (array $parameters) {
+  $preprocessor = NULL;
+
   $batch = array(
     'title' => t('Islandora Batch Ingest'),
     'finished' => 'islandora_batch_finished',
     'init_message' => t('Initializing...'),
     'file' => drupal_get_path('module', 'islandora_batch') . '/includes/ingest.batch.inc',
-    'operations' => array(
-      array('islandora_batch_ingest_process', array($parameters)),
-    ),
+    'operations' => array(),
   );
+
+  if (isset($parameters['preprocessor'])) {
+    $batch['operations'][] = array('islandora_batch_ingest_preprocess', array($parameters['preprocessor']));
+  }
+
+  $batch['operations'][] = array('islandora_batch_ingest_process', array($parameters));
 
   batch_set($batch);
 }
@@ -53,7 +59,7 @@ function islandora_batch_set_operations (array $parameters) {
 /**
  * "Dumbly" sets the batch operations and calls batch_process().
  */
-function islandora_batch_ingest() {
-  islandora_batch_set_operations();
+function islandora_batch_ingest(array $parameters) {
+  islandora_batch_set_operations($parameters);
   batch_process();
 }
