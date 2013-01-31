@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Abstract preprocessor base class for batch.
+ */
+
 class IslandoraBatchFailedToLockException extends Exception {}
 
 abstract class IslandoraBatchPreprocessor {

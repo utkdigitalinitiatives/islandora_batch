@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Batch ingest batch operations.
+ */
+
 define('ISLANDORA_BATCH_LOCK_NAME', 'islandora_batch_ingest');
 define('ISLANDORA_BATCH_TIMER_NAME', 'islandora_batch_timer');
 
@@ -192,7 +197,7 @@ function test_islandora_batch_process_results($results, $timeout, &$context) {
 function islandora_batch_process_results($results, $timeout, &$context) {
   $average_time = -1;
 
-  while((
+  while ((
       $average_time < 0 ||
       islandora_batch_time_check(ISLANDORA_BATCH_TIMER_NAME, $average_time, $timeout)
     ) &&

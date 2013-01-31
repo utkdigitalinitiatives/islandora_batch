@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Drush hooks.
+ */
+
+/**
  * Implements hook_drush_command().
  */
 function islandora_batch_drush_command() {

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * The admin form.
+ */
+
+/**
  * Admin form for the batch.
  */
 function islandora_batch_admin_form($form, $form_state) {

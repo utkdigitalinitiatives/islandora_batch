@@ -1,6 +1,14 @@
 <?php
 
 /**
+ * @file
+ * A basic batch ingest implementation (preprocessor and object).
+ *
+ * Works much the same as the zip importer in the islandora_importer module,
+ * or the old D6 zip batch ingester.
+ */
+
+/**
  * A class which is capable of getting the listing of a directory or zip file.
  *
  * Used as a basis for the book batch. Really, just adds a couple methods to

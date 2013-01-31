@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @file
+ * Installation hooks.
+ */
+
+/**
+ * Implements hook_schema().
+ */
 function islandora_batch_schema() {
   $schema = array();
 

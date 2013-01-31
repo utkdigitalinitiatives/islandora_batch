@@ -36,7 +36,7 @@ function islandora_batch_handle_preprocessor(IslandoraBatchPreprocessor $preproc
  *
  * Queries the database for preprocessed entries, and attempts to ingest them.
  */
-function islandora_batch_set_operations (array $parameters) {
+function islandora_batch_set_operations(array $parameters) {
   $preprocessor = NULL;
 
   $batch = array(

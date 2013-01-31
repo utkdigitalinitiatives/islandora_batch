@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Abstract base class for objects ingested via batch framework.
+ */
+
+/**
  * Batch interface.
  *
  * Implementing classes should subclass some version of FedoraObject, so 
