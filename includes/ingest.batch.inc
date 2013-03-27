@@ -220,9 +220,8 @@ function islandora_batch_process_results($results, $timeout, &$context) {
         $context['message'] = t('Ingested %pid.', array('%pid' => $ingested_object->id));
       }
       else {
-        //  Failed to ingest...  Write back to the database, and say it's ready.
-        $object['data'] = serialize($ingest_object);
-        $object['state'] = ISLANDORA_BATCH_STATE__READY;
+        //  Failed to ingest...  Flag an error.
+        $object['state'] = ISLANDORA_BATCH_STATE__ERROR;
       }
     }
 
