@@ -74,14 +74,13 @@ abstract class IslandoraBatchPreprocessor {
    * @param array $resources
    *   An associative array of arrays, mapping types of resources to an array
    *   of relevant resources for the given object.
-   *
+   *id
    * @return string
    *   The PID of the object (one will be allocated if the object does not
    *   already have one; otherwise, that on the object will be returned).
    */
   protected function add_to_database(AbstractFedoraObject $object, array $resources = array(), $parent = NULL) {
     $namespace = (isset($this->parameters['namespace'])) ? $this->parameters['namespace'] : NULL;
-    $namespace = $this->parameters['namespace'];
     if (!isset($object->id)) {
       $object->id = $this->get_id($namespace);
     }
