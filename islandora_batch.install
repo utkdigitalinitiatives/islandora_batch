@@ -121,7 +121,10 @@ function islandora_batch_schema() {
 }
 
 /**
- * Should have been done in the earlier commit introducing the error state.
+ * Should have been done when introducing the "error" state
+ * https://github.com/discoverygarden/islandora_batch/pull/3, or
+ * https://github.com/discoverygarden/islandora_batch/pull/6 (where it actually
+ * started getting used, due to exceptions breaking things).
  */
 function islandora_batch_update_7100() {
   db_change_field('islandora_batch_state', 'state', 'state',
