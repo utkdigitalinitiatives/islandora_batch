@@ -169,12 +169,18 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   protected function preprocess_children(IslandoraBatchObject $object, $parent = NULL) {
     $to_return = array();
 
-    $object->add_relationships();
-    $this->add_to_database($object, $object->get_resources(), $parent);
-    $to_return[] = $object;
+    // XXX: Squash exceptions and log 'em.
+    try {
+      $object->add_relationships();
+      $this->add_to_database($object, $object->get_resources(), $parent);
+      $to_return[] = $object;
 
-    foreach ($object->get_children($this->connection) as $child) {
-      $to_return = array_merge($to_return, $this->preprocess_children($child, $object->id));
+      foreach ($object->get_children($this->connection) as $child) {
+        $to_return = array_merge($to_return, $this->preprocess_children($child, $object->id));
+      }
+    }
+    catch (Exception $e) {
+      watchdog_excpetion('islandora_batch', $e);
     }
 
     return $to_return;
