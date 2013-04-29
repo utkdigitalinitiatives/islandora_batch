@@ -180,7 +180,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
       }
     }
     catch (Exception $e) {
-      watchdog_excpetion('islandora_batch', $e);
+      watchdog_exception('islandora_batch', $e);
     }
 
     return $to_return;
