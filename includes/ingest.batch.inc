@@ -201,7 +201,7 @@ function islandora_batch_time_check($timer, $next_op, $timeout) {
 /**
  * A test implementation, to dump contents...
  */
-function /*test_*/islandora_batch_process_results($results, $timeout, $lock_timeout, &$context) {
+function test_islandora_batch_process_results($results, $timeout, $lock_timeout, &$context) {
   dlm($results->getQueryString(), 'Query');
   foreach ($results as $result) {
     dlm($result, $result->id);
@@ -221,7 +221,7 @@ function /*test_*/islandora_batch_process_results($results, $timeout, $lock_time
  * @return int
  *   A flag indicating the state.
  */
-function real_islandora_batch_process_results($results, $timeout, $lock_timeout, &$context) {
+function islandora_batch_process_results($results, $timeout, $lock_timeout, &$context) {
   $average_time = -1;
 
   while ((
