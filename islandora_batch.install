@@ -34,6 +34,9 @@ function islandora_batch_schema() {
       ),
     ),
     'primary key' => array('id'),
+    'indexes' => array(
+      'parent_index' => array('parent'),
+    ),
     'foreign keys' => array(
       'parent_entry' => array(
         'table' => 'islandora_batch_queue',
@@ -137,4 +140,12 @@ function islandora_batch_update_7100() {
       'unsigned' => FALSE,
     )
   );
+}
+
+/**
+ * Index the "parent" column in the islandora_batch_queue table, as it is used
+ * when determining which parent objects are available to be ingested.
+ */
+function islandora_batch_update_7101() {
+  db_add_index('islandora_batch_queue', 'parent_index', array('parent'));
 }
