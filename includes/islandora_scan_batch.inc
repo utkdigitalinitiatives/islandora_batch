@@ -218,11 +218,11 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
       $meta = array_map(NULL, array('xml', 'mrc'));
       $other = array_diff_key($this->object_info, $meta);
 
-      if ($obj = reset($other)) {
-        $obj_datastream = $this->constructDatastream('OBJ');
-        // Figure out the mimetype.
-        $obj_datastream->mimetype = static::get_mime($obj);
-        $obj_datastream->label = 'OBJ Datastream';
+      foreach ($other as $obj) {
+        list($dsid, $mimetype) = static::determineDSIDAndMimetype($obj->filename);
+        $obj_datastream = $this->constructDatastream($dsid);
+        $obj_datastream->mimetype = $mimetype;
+        $obj_datastream->label = "$dsid Datastream";
         $obj_datastream->setContentFromFile($obj->uri, FALSE);
 
         $this->ingestDatastream($obj_datastream);
@@ -230,6 +230,52 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
     }
 
     return ISLANDORA_BATCH_STATE__DONE;
+  }
+
+  /**
+  * Determine the datastream ID for the given file.
+  *
+  * Gets info from the DS-COMPOSITE-MODELs for the selected content models
+  * and attempts to match based on detected MIME-Types.
+  *
+  * @param string $fname
+  * A filename for which to determine a mimetype.
+  *
+  * @return array
+  * An array containing two values:
+  * - Either boolean FALSE or the datastream ID, as mapped in the
+  * DS-COMPOSITE-MODELs of the selected object.
+  * - A string containing the detected mimetype of the file.
+  */
+  protected function determineDSIDAndMimetype($name) {
+  // Something like this would be nice to have... Need a way to indicate
+  // primary assets, though... Think about basic image, where the content
+  // model can contain "OBJ" image/jpeg, "TN" image/jpeg and so on...
+  static $mime_detect = NULL;
+  static $dsids = NULL;
+
+  if ($mime_detect === NULL || $dsids === NULL) {
+    $mime_detect = new MimeDetect();
+
+    module_load_include('inc', 'islandora', 'includes/utilities');
+    //$models = (array) $this->source['content_model'];
+    $models = (array) $this->preprocessor_parameters['content_models'];
+    $dsids = islandora_get_datastreams_requirements_from_models($models);
+  }
+
+  $mimetype = $mime_detect->getMimetype($name);
+
+  $dsid = FALSE;
+  // Determine which stream this should be... Uses the first matching, as
+  // received from the DC-COMPOSITE.
+  foreach ($dsids as $ds => $info) {
+    if (in_array($mimetype, $info['mime'])) {
+      $dsid = $ds;
+      break;
+    }
+  }
+
+  return array($dsid, $mimetype);
   }
 
   /**
