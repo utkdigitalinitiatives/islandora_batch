@@ -26,14 +26,14 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
    *   - name: The filename without its extension.
    */
   protected function scan() {
-    $method = "scan_" . $this->get_target_type();
-    return $this->$method($this->get_target());
+    $method = "scan_" . $this->getTargetType();
+    return $this->$method($this->getTarget());
   }
 
   /**
    * Get the target resource.
    */
-  protected function get_target() {
+  protected function getTarget() {
     return $this->parameters['target'];
   }
 
@@ -43,26 +43,26 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
    * Prefixed with "scan_" to determine which method gets called to generate
    * the list of resource.
    */
-  protected function get_target_type() {
+  protected function getTargetType() {
     return $this->parameters['type'];
   }
 
   /**
    * Allow the pattern to be set differently.
    */
-  protected static function get_pattern() {
+  protected static function getPattern() {
     return '/.*/';
   }
 
   /**
    * Scan the directory with file_scan_directory().
    */
-  protected function scan_directory($target) {
+  protected function scanDirectory($target) {
     $files = array();
     $target_components = explode(DIRECTORY_SEPARATOR, $target);
     $target = implode(DIRECTORY_SEPARATOR, $target_components);
     $target_length = strlen($target) + 1;
-    foreach (file_scan_directory($target, $this->get_pattern()) as $uri => $value) {
+    foreach (file_scan_directory($target, $this->getPattern()) as $uri => $value) {
       $files[substr($uri, $target_length)] = $value;
     }
 
@@ -72,7 +72,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   /**
    * Generate output analogous to file_scan_directory().
    */
-  protected function scan_zip($target) {
+  protected function scanZip($target) {
     $zip = new ZipArchive();
 
     $zip_file = drupal_realpath($target);
@@ -89,7 +89,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
 
       // Avoid creating entries for directories and some weird Mac stuff...
       // XXX: Should be made to take the pattern from
-      // $this::get_pattern(), and to filter the results based on it.
+      // $this::getPattern(), and to filter the results based on it.
       if (isset($path_info['extension']) && strpos($path_info['dirname'], '__MACOSX') === FALSE && $path_info['extension'] != 'DS_Store') {
         $file_entry = new stdClass();
         $file_entry->uri = "zip://$zip_file#$name";
@@ -112,7 +112,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
    * @param array $files
    *   An array, as returned by file_scan_directory().
    */
-  protected function group_files($files) {
+  protected function groupFiles($files) {
     $grouped = array();
 
     // TODO: Group according to basename, to and hand-off each group to object
@@ -128,7 +128,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   /**
    * Get the name of the class to instantiate for the batch operations.
    */
-  protected static function get_object_class() {
+  protected static function getObjectClass() {
     return "IslandoraScanBatchObject";
   }
 
@@ -149,15 +149,15 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
 
     $added = array();
 
-    $grouped = $this->group_files($files);
+    $grouped = $this->groupFiles($files);
 
-    $object_class = static::get_object_class();
+    $object_class = static::getObjectClass();
     foreach ($grouped as $base_name => $object_info) {
       $ingest_object = new $object_class($this->connection, $base_name, $object_info, $this->parameters);
 
       // XXX: Might be better to have this actually handled as another
       // "preprocessor", so arbitrary "tree" structures might be built?
-      $added = array_merge($added, $this->preprocess_children($ingest_object));
+      $added = array_merge($added, $this->preprocessChildren($ingest_object));
     }
 
     return $added;
@@ -166,17 +166,17 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
   /**
    * Recursively attempt to preprocess children.
    */
-  protected function preprocess_children(IslandoraBatchObject $object, $parent = NULL) {
+  protected function preprocessChildren(IslandoraBatchObject $object, $parent = NULL) {
     $to_return = array();
 
     // XXX: Squash exceptions and log 'em.
     try {
-      $object->add_relationships();
-      $this->add_to_database($object, $object->get_resources(), $parent);
+      $object->addRelationships();
+      $this->addToDatabase($object, $object->getResources(), $parent);
       $to_return[] = $object;
 
-      foreach ($object->get_children($this->connection) as $child) {
-        $to_return = array_merge($to_return, $this->preprocess_children($child, $object->id));
+      foreach ($object->getChildren($this->connection) as $child) {
+        $to_return = array_merge($to_return, $this->preprocessChildren($child, $object->id));
       }
     }
     catch (Exception $e) {
@@ -196,16 +196,16 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
   public function __construct(IslandoraTuque $connection, $base_name, $object_info, $preprocessor_parameters) {
     parent::__construct(NULL, $connection->repository);
 
-    $this->base_name = $base_name;
-    $this->object_info = $object_info;
+    $this->base_name = $baseName;
+    $this->object_info = $objectInfo;
     $this->resources = array();
-    $this->preprocessor_parameters = $preprocessor_parameters;
+    $this->preprocessor_parameters = $preprocessorParameters;
   }
 
   /**
    * Static Function to get mime.
    */
-  protected static function get_mime($file_object) {
+  protected static function getMime($file_object) {
     static $mime_detect = NULL;
     if ($mime_detect === NULL) {
       $mime_detect = new MimeDetect();
@@ -217,11 +217,11 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
   /**
    * Function batch_process.
    */
-  public function batch_process() {
+  public function batchProcess() {
     // Use object_info to create some datastreams.
-    $this->label = $this->get_title();
-    $this->get_mods();
-    $this->get_dc();
+    $this->label = $this->getTitle();
+    $this->getMods();
+    $this->getDc();
 
     if (!isset($this['OBJ'])) {
       $meta = array_map(NULL, array('xml', 'mrc'));
@@ -242,55 +242,51 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
   }
 
   /**
-  * Determine the datastream ID for the given file.
-  *
-  * Gets info from the DS-COMPOSITE-MODELs for the selected content models
-  * and attempts to match based on detected MIME-Types.
-  *
-  * @param string $fname
-  * A filename for which to determine a mimetype.
-  *
-  * @return array
-  * An array containing two values:
-  * - Either boolean FALSE or the datastream ID, as mapped in the
-  * DS-COMPOSITE-MODELs of the selected object.
-  * - A string containing the detected mimetype of the file.
+   * Determine the datastream ID for the given file.
+   *
+   * Gets info from the DS-COMPOSITE-MODELs for the selected content models
+   * and attempts to match based on detected MIME-Types.
+   *
+   * @param string $fname
+   * A filename for which to determine a mimetype.
+   *
+   * @return array
+   * An array containing two values:
+   * - Either boolean FALSE or the datastream ID, as mapped in the
+   * DS-COMPOSITE-MODELs of the selected object.
+   * - A string containing the detected mimetype of the file.
   */
   protected function determineDSIDAndMimetype($name) {
-  // Something like this would be nice to have... Need a way to indicate
-  // primary assets, though... Think about basic image, where the content
-  // model can contain "OBJ" image/jpeg, "TN" image/jpeg and so on...
-  static $mime_detect = NULL;
-  static $dsids = NULL;
+    // Something like this would be nice to have... Need a way to indicate
+    // primary assets, though... Think about basic image, where the content
+    // model can contain "OBJ" image/jpeg, "TN" image/jpeg and so on...
+    static $mime_detect = NULL;
+    static $dsids = NULL;
 
-  if ($mime_detect === NULL || $dsids === NULL) {
-    $mime_detect = new MimeDetect();
-
-    module_load_include('inc', 'islandora', 'includes/utilities');
-    //$models = (array) $this->source['content_model'];
-    $models = (array) $this->preprocessor_parameters['content_models'];
-    $dsids = islandora_get_datastreams_requirements_from_models($models);
-  }
-
-  $mimetype = $mime_detect->getMimetype($name);
-
-  $dsid = FALSE;
-  // Determine which stream this should be... Uses the first matching, as
-  // received from the DC-COMPOSITE.
-  foreach ($dsids as $ds => $info) {
-    if (in_array($mimetype, $info['mime'])) {
-      $dsid = $ds;
-      break;
+    if ($mime_detect === NULL || $dsids === NULL) {
+      $mime_detect = new MimeDetect();
+      module_load_include('inc', 'islandora', 'includes/utilities');
+      $models = (array) $this->preprocessor_parameters['content_models'];
+      $dsids = islandora_get_datastreams_requirements_from_models($models);
     }
-  }
 
-  return array($dsid, $mimetype);
+    $mimetype = $mime_detect->getMimetype($name);
+    $dsid = FALSE;
+    // Determine which stream this should be... Uses the first matching, as
+    // received from the DC-COMPOSITE.
+    foreach ($dsids as $ds => $info) {
+      if (in_array($mimetype, $info['mime'])) {
+        $dsid = $ds;
+        break;
+      }
+    }
+    return array($dsid, $mimetype);
   }
 
   /**
    * Get resources for the current object.
    */
-  public function get_resources() {
+  public function getResources() {
     return $this->resources;
   }
 
@@ -299,10 +295,10 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
    *
    * Gets the label not empty; otherwise, grabs a title from the MODS.
    */
-  protected function get_title() {
+  protected function getTitle() {
     if (!isset($this->label) || empty($this->label)) {
       // Acquire a title.
-      $mods = $this->get_mods();
+      $mods = $this->getMods();
       if ($mods) {
         $mods_doc = new DOMDocument();
         $mods_doc->loadXML($mods);
@@ -329,7 +325,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
    * @return string
    *   The transformed XML, as a string.
    */
-  protected static function run_xsl_transform($info) {
+  protected static function runXslTransform($info) {
     $xsl = new DOMDocument();
     $xsl->load($info['xsl']);
 
@@ -350,7 +346,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
   /**
    * Function to get the mods.
    */
-  protected function get_mods() {
+  protected function getMods() {
     if (!isset($this['MODS'])) {
       $dir = drupal_get_path('module', 'islandora_batch');
       // TODO: Create the MODS datastream on this object.
@@ -371,14 +367,14 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
           }
           // MARCXML, transform to MODS and set.
           elseif ($s_xml->getName() == 'record') {
-            $mods_datastream->content = static::run_xsl_transform(array(
+            $mods_datastream->content = static::runXslTransform(array(
               'input' => $xml,
               'xsl' => $dir . '/transforms/MARC21slim2MODS3-4.xsl',
             ));
           }
           // DC, transform to MODS and set.
           elseif ($s_xml->getName() == 'dc') {
-            $mods_datastream->content = static::run_xsl_transform(array(
+            $mods_datastream->content = static::runXslTransform(array(
               'input' => $xml,
               'xsl' => $dir . '/transforms/simpleDC2MODS.xsl',
             ));
@@ -454,7 +450,7 @@ EOXML;
   /**
    * Function to get dc.
    */
-  protected function get_dc() {
+  protected function getDc() {
     if (!isset($this['DC'])) {
       // TODO: Create the DC datastream on this object.
       $dc_datastream = $this->constructDatastream('DC', 'X');
@@ -477,9 +473,9 @@ EOXML;
       if (!isset($dc_datastream->content)) {
         // XXX: Might want to make this use a file, instead of staging the DC
         // in the database table (inside the object we serialize).
-        $new_dc = static::run_xsl_transform(array(
+        $new_dc = static::runXslTransform(array(
           'xsl' => drupal_get_path('module', 'islandora_batch') . '/transforms/mods_to_dc.xsl',
-          'input' => $this->get_mods(),
+          'input' => $this->getMods(),
         ));
         if ($new_dc) {
           $dc_datastream->content = $new_dc;
@@ -495,19 +491,19 @@ EOXML;
   /**
    * Add collection and content model relationships.
    */
-  public function add_relationships() {
+  public function addRelationships() {
     $collection = $this->preprocessor_parameters['parent'];
     $predicate = $this->preprocessor_parameters['parent_relationship_pred'];
     $uri = $this->preprocessor_parameters['parent_relationship_uri'];
 
     $this->relationships->add($uri, $predicate, $collection);
-    $this->add_content_model_relationships();
+    $this->addContentModelRelationships();
   }
 
   /**
    * Add the content model relationship(s).
    */
-  protected function add_content_model_relationships() {
+  protected function addContentModelRelationships() {
     $this->models = $this->preprocessor_parameters['content_models'];
   }
 }

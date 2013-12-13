@@ -21,7 +21,7 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    *   - 2: Partially processed (waiting for children to be processed).
    *   - 3: Fully processed... Push to the back-end.
    */
-  public function initial_batch_state() {
+  public function initialBatchState() {
     return ISLANDORA_BATCH_STATE__READY;
   }
 
@@ -34,15 +34,15 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    *   If the state is "partially processed", we should be careful that the
    *   work does not get performed again next time around.
    */
-  abstract public function batch_process();
+  abstract public function batchProcess();
 
   /**
    * Get the resources to which we should link in the database.
    *
    * Should be in the format used by
-   * IslandoraBatchPreprocessor::add_to_database().
+   * IslandoraBatchPreprocessor::addToDatabase().
    */
-  abstract public function get_resources();
+  abstract public function getResources();
 
   /**
    * Get the child objects, for those content models which require them.
@@ -55,7 +55,7 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    * @return array
    *   An array of IslandoraBatchObjects, which will be put into the database
    */
-  public function get_children(IslandoraTuque $connection) {
+  public function getChildren(IslandoraTuque $connection) {
     return array();
   }
 
@@ -64,5 +64,5 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    *
    * Add relationships to the object.
    */
-  abstract public function add_relationships();
+  abstract public function addRelationships();
 }
