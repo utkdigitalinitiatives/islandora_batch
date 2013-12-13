@@ -154,8 +154,10 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
  */
 function islandora_batch_restrict_to_set($query, $table_alias, $ingest_set) {
   if ($ingest_set) {
-    $query->condition("$table_alias.id", array_map(function ($o) {return $o->id;
-    } , $ingest_set));
+    $map_function = function ($o) {
+      return $o->id;
+    };
+    $query->condition("$table_alias.id", array_map($map_function, $ingest_set));
   }
 }
 

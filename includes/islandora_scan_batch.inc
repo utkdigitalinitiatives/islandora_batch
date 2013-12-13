@@ -188,7 +188,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
 }
 
 class IslandoraScanBatchObject extends IslandoraBatchObject {
-  protected $base_name, $object_info, $preprocessor_parameters;
+  protected $baseName, $objectInfo, $preprocessorParameters;
 
   /**
    * Constructor for the IslandoraScanBatchObject.
