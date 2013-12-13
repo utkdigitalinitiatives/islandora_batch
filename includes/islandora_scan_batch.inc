@@ -8,10 +8,6 @@
  * or the old D6 zip batch ingester.
  */
 
-// @codingStandardsIgnoreStart
-// This Whole file is ignored due to classes and methods are not camelcase and it
-// being called all over the place.  All of the other coding standards are met.
-
 /**
  * A class which is capable of getting the listing of a directory or zip file.
  *
@@ -515,4 +511,3 @@ EOXML;
     $this->models = $this->preprocessor_parameters['content_models'];
   }
 }
-// @codingStandardsIgnoreEnd

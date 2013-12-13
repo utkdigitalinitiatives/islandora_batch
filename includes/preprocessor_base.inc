@@ -5,9 +5,6 @@
  * Abstract preprocessor base class for batch.
  */
 
-// @codingStandardsIgnoreStart
-// This Whole file is ignored due to classes and methods are not camelcase and it
-// being called all over the place.  All of the other coding standards are met.
 /**
  * Lock exception.
  */
@@ -88,7 +85,7 @@ abstract class IslandoraBatchPreprocessor {
    * @param array $resources
    *   An associative array of arrays, mapping types of resources to an array
    *   of relevant resources for the given object.
-   * 
+   *
    * @return string
    *   The PID of the object (one will be allocated if the object does not
    *   already have one; otherwise, that on the object will be returned).
@@ -120,4 +117,3 @@ abstract class IslandoraBatchPreprocessor {
     return $object->id;
   }
 }
-// @codingStandardsIgnoreEnd
