@@ -196,10 +196,10 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
   public function __construct(IslandoraTuque $connection, $base_name, $object_info, $preprocessor_parameters) {
     parent::__construct(NULL, $connection->repository);
 
-    $this->base_name = $baseName;
-    $this->object_info = $objectInfo;
+    $this->baseName = $base_name;
+    $this->objectInfo = $object_info;
     $this->resources = array();
-    $this->preprocessor_parameters = $preprocessorParameters;
+    $this->preprocessorParameters = $preprocessor_parameters;
   }
 
   /**
@@ -247,15 +247,15 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
    * Gets info from the DS-COMPOSITE-MODELs for the selected content models
    * and attempts to match based on detected MIME-Types.
    *
-   * @param string $fname
-   * A filename for which to determine a mimetype.
+   * @param string $name
+   *   A filename for which to determine a mimetype.
    *
    * @return array
-   * An array containing two values:
+   *   An array containing two values:
    * - Either boolean FALSE or the datastream ID, as mapped in the
    * DS-COMPOSITE-MODELs of the selected object.
    * - A string containing the detected mimetype of the file.
-  */
+   */
   protected function determineDSIDAndMimetype($name) {
     // Something like this would be nice to have... Need a way to indicate
     // primary assets, though... Think about basic image, where the content
