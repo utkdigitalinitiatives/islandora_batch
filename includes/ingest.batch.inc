@@ -134,9 +134,20 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     // We finished the queue of objects.
     $context['finished'] = 1;
   }
+  elseif (isset($ingest_set)) {
+    // We're not done, but we have a restricted set of things... Let's report
+    // how far along we are.
+    $context['sandbox']['current'] = $context['results']['count'];
+    $context['finished'] = 1.0 * $context['sandbox']['current'] / count($ingest_set);
+  }
   else {
     // Otherwise, make us get scheduled again.
-    $context['finished'] = 0;
+    // XXX: Count of loops is just to offer /some/ indication of progress...
+    // estimated times will be meaningless.
+    $context['sandbox']['loops'] = isset($context['sandbox']['loops']) ?
+      ($context['sandbox']['loops'] + 1) :
+      1;
+    $context['finished'] = 1.0 * $context['sandbox']['loops'] / ($context['sandbox']['loops'] + 1);
   }
 
   $context['results']['timer'] = timer_stop(ISLANDORA_BATCH_TIMER_NAME);
