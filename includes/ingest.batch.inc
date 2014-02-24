@@ -17,7 +17,7 @@ define('ISLANDORA_BATCH_EMPTY_SET', 2);
 
 /**
  * Function to get the average.
- * 
+ *
  * @param array $context
  *   The context
  */
@@ -154,11 +154,10 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
  */
 function islandora_batch_restrict_to_set($query, $table_alias, $ingest_set) {
   if ($ingest_set) {
-    // @codingStandardsIgnoreStart
-    $query->condition("$table_alias.id", array_map(function ($o) {return $o->id;
-    }
-    , $ingest_set));
-    // @codingStandardsIgnoreEnd
+    $map_function = function ($o) {
+      return $o->id;
+    };
+    $query->condition("$table_alias.id", array_map($map_function, $ingest_set));
   }
 }
 
@@ -267,7 +266,7 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
     $ingest_object = unserialize($object['data']);
 
     if ($object['state'] !== ISLANDORA_BATCH_STATE__DONE) {
-      $object['state'] = $ingest_object->batch_process();
+      $object['state'] = $ingest_object->batchProcess();
     }
 
     if ($object['state'] === ISLANDORA_BATCH_STATE__DONE) {

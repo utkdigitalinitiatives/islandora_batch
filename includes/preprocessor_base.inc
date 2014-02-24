@@ -5,9 +5,6 @@
  * Abstract preprocessor base class for batch.
  */
 
-// @codingStandardsIgnoreStart
-// This Whole file is ignored due to classes and methods are not camelcase and it
-// being called all over the place.  All of the other coding standards are met.
 /**
  * Lock exception.
  */
@@ -67,7 +64,7 @@ abstract class IslandoraBatchPreprocessor {
    * @return string
    *   An id to use in the back-end (Fedora).
    */
-  protected function get_id() {
+  protected function getId() {
     // Not specifying a namespace should result in one from the default
     // declared in the fedora.fcfg ("changeme" by default).
     $namespace = (isset($this->parameters['namespace'])) ?
@@ -88,14 +85,14 @@ abstract class IslandoraBatchPreprocessor {
    * @param array $resources
    *   An associative array of arrays, mapping types of resources to an array
    *   of relevant resources for the given object.
-   * 
+   *
    * @return string
    *   The PID of the object (one will be allocated if the object does not
    *   already have one; otherwise, that on the object will be returned).
    */
-  protected function add_to_database(AbstractFedoraObject $object, array $resources = array(), $parent = NULL) {
+  protected function addToDatabase(AbstractFedoraObject $object, array $resources = array(), $parent = NULL) {
     if (!isset($object->id)) {
-      $object->id = $this->get_id();
+      $object->id = $this->getId();
     }
 
     db_insert('islandora_batch_queue')
@@ -105,7 +102,7 @@ abstract class IslandoraBatchPreprocessor {
       ->execute();
     db_insert('islandora_batch_state')
       ->fields(array('id', 'state'))
-      ->values(array($object->id, $object->initial_batch_state()))
+      ->values(array($object->id, $object->initialBatchState()))
       ->execute();
 
     foreach ($resources as $type => $typed_resources) {
@@ -120,4 +117,3 @@ abstract class IslandoraBatchPreprocessor {
     return $object->id;
   }
 }
-// @codingStandardsIgnoreEnd
