@@ -32,16 +32,38 @@ function islandora_batch_schema() {
         'type' => 'blob',
         'size' => 'big',
       ),
+      'bid' => array(
+        'description' => 'ID of this object, in the batch context.',
+        'type' => 'serial',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'sid' => array(
+        'description' => 'ID of the set to which this object belongs.',
+        'type' => 'int',
+        'size' => 'big',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
       'parent_index' => array('parent'),
+      'sid' => array('sid'),
+    ),
+    'unique keys' => array(
+      'bid' => array('bid'),
     ),
     'foreign keys' => array(
       'parent_entry' => array(
         'table' => 'islandora_batch_queue',
         'fields' => array(
           'parent' => 'id',
+        ),
+      ),
+      'set' => array(
+        'table' => 'islandora_batch_set',
+        'fields' => array(
+          'sid' => 'id',
         ),
       ),
     ),
@@ -120,12 +142,44 @@ function islandora_batch_schema() {
     ),
   );
 
+  $schema['islandora_batch_set'] = array(
+    'description' => 'Facilitate tracking of items in sets.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'ID to track this a set of items being batched.',
+        'type' => 'serial',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'User ID of the user who created this set.',
+        'type' => 'int',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Timestamp of when this set was registered.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'foreign keys' => array(
+      'associated user' => array(
+        'table' => 'users',
+        'fields' => array(
+          'uid' => 'uid',
+        ),
+      ),
+    ),
+  );
+
   return $schema;
 }
 
 /**
- * Function to update 7100.
- * 
+ * Adjust columns tracking error state.
+ *
  * Should have been done when introducing the "error" state
  * https://github.com/discoverygarden/islandora_batch/pull/3, or
  * https://github.com/discoverygarden/islandora_batch/pull/6 (where it actually
@@ -145,11 +199,75 @@ function islandora_batch_update_7100() {
 }
 
 /**
- * Function to update 7101.
- * 
+ * Add index on "parent" column so things are faster.
+ *
  * Index the "parent" column in the islandora_batch_queue table, as it is used
  * when determining which parent objects are available to be ingested.
  */
 function islandora_batch_update_7101() {
   db_add_index('islandora_batch_queue', 'parent_index', array('parent'));
+}
+
+/**
+ * Add new table and columns for better set tracking and file management.
+ */
+function islandora_batch_update_7102() {
+  db_create_table('islandora_batch_set', array(
+    'description' => 'Facilitate tracking of items in sets.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'ID to track this a set of items being batched.',
+        'type' => 'serial',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'User ID of the user who created this set.',
+        'type' => 'int',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Timestamp of when this set was registered.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'foreign keys' => array(
+      'associated user' => array(
+        'table' => 'users',
+        'fields' => array(
+          'uid' => 'uid',
+        ),
+      ),
+    ),
+  ));
+
+  db_add_field('islandora_batch_queue', 'bid', array(
+    'description' => 'ID of this object, in the batch context.',
+    'type' => 'serial',
+    'size' => 'big',
+    'not null' => TRUE,
+  ), array(
+    'unique keys' => array(
+      'bid' => array('bid'),
+    ),
+  ));
+
+  db_add_field('islandora_batch_queue', 'sid', array(
+    'description' => 'ID of the set to which this object belongs.',
+    'type' => 'int',
+    'size' => 'big',
+    'not null' => FALSE,
+  ), array(
+    'foreign keys' => array(
+      'set' => array(
+        'table' => 'islandora_batch_set',
+        'fields' => array(
+          'sid' => 'id',
+        ),
+      ),
+    ),
+  ));
 }

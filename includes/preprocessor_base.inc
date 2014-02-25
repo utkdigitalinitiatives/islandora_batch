@@ -29,6 +29,12 @@ abstract class IslandoraBatchPreprocessor {
   protected $connection;
 
   /**
+   * @var string|int $setId
+   *   A string/int identifying the set of objects.
+   */
+  protected $setId;
+
+  /**
    * Constructor must be able to receive an associative array of parameters.
    *
    * @param array $parameters
@@ -42,6 +48,29 @@ abstract class IslandoraBatchPreprocessor {
     $this->parameters = $parameters;
     $this->connection = $connection;
 
+    global $user;
+    $insert = db_insert('islandora_batch_set')
+      ->fields(array(
+        'uid' => $user->uid,
+        'created' => time(),
+      ));
+    $this->setId = $insert->execute();
+
+    $lock = lock_acquire('islandora_batch_processing');
+    if (!$lock) {
+      throw new IslandoraBatchFailedToLockException(
+          t('Failed to acquire lock for batch ingest.')
+      );
+    }
+  }
+
+  /**
+   * PHP Magic function.
+   *
+   * Ensure we still have/can get our lock when we wake up, as we can be
+   * serialized.
+   */
+  public function __wakeup() {
     $lock = lock_acquire('islandora_batch_processing');
     if (!$lock) {
       throw new IslandoraBatchFailedToLockException(
@@ -76,6 +105,13 @@ abstract class IslandoraBatchPreprocessor {
   }
 
   /**
+   * Accessor for the set ID.
+   */
+  public function getSetId() {
+    return $this->setId;
+  }
+
+  /**
    * Add the provided object to the database.
    *
    * Should be called from inside the "preprocess" method.
@@ -96,9 +132,9 @@ abstract class IslandoraBatchPreprocessor {
     }
 
     db_insert('islandora_batch_queue')
-      ->fields(array('id', 'parent', 'data'))
+      ->fields(array('id', 'parent', 'data', 'sid'))
       // Could queue up multiple in a static cache, to dump all together?
-      ->values(array($object->id, $parent, serialize($object)))
+      ->values(array($object->id, $parent, serialize($object), $this->setId))
       ->execute();
     db_insert('islandora_batch_state')
       ->fields(array('id', 'state'))

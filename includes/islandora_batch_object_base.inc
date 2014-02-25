@@ -65,4 +65,31 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    * Add relationships to the object.
    */
   abstract public function addRelationships();
+
+  /**
+   * Get the ID of this object in the queue.
+   *
+   * Only valid to call after we've been added to the database, and before
+   * we have actually been ingested.
+   *
+   * @return int
+   *   The ID of this object, as an integer.
+   */
+  public function getBatchId() {
+    $id = db_select('islandora_batch_queue', 'q')
+      ->fields('q', array('bid'))
+      ->condition('id', $this->id)
+      ->execute()
+      ->fetchField();
+    if ($id) {
+      return intval($id);
+    }
+    else {
+      throw new IslandoraBatchNoIdException(t('No ID found for @id...  Is it in the queue yet?', array(
+        '@id' => $this->id,
+      )));
+    }
+  }
 }
+
+class IslandoraBatchNoIdException extends Exception {}
