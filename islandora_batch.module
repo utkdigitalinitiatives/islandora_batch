@@ -54,11 +54,12 @@ function islandora_batch_set_operations(array $parameters) {
     'init_message' => t('Initializing...'),
     'file' => drupal_get_path('module', 'islandora_batch') . '/includes/ingest.batch.inc',
     'operations' => array(),
-    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
+    'progress_message' => t('Time elapsed: @elapsed.'),
   );
 
   if (isset($parameters['preprocessor'])) {
     $batch['operations'][] = array('islandora_batch_ingest_preprocess', array($parameters['preprocessor']));
+    $batch['progress_message'] = t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.');
   }
 
   $batch['operations'][] = array('islandora_batch_ingest_process', array($parameters));
