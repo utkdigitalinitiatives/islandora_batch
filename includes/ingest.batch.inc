@@ -31,7 +31,8 @@ function islandora_batch_get_average($context) {
  * Batch operation to run a preprocessor.
  */
 function islandora_batch_ingest_preprocess($preprocessor, &$context) {
-  $context['results']['ingest_set'] = islandora_batch_handle_preprocessor($preprocessor);
+  islandora_batch_handle_preprocessor($preprocessor);
+  $context['results']['ingest_set'] = $preprocessor->getSetId();
   $context['message'] = t('Preprocessed target file.');
 }
 
@@ -40,9 +41,9 @@ function islandora_batch_ingest_preprocess($preprocessor, &$context) {
  *
  * @param array $parameters
  *   An associative array of parameters to affect processing. Includes:
- *   - ingest_set: An array of IslandoraNewFedoraObjects to affect (Can
- *     instead be included as $context['results']['ingest_set']). This array of
- *     objects is used to limit the results when querying agains the queue.
+ *   - ingest_set: A string or integer used to limit items to ingest to the
+ *     results of a single preprocessing run. This can instead be included as
+ *     $context['results']['ingest_set']).
  *   - timeout: An amount of time in seconds. If provided, we will only ingest
  *     until this amount of time is reached (or we think we'll exceed it,
  *     based on a running average).
@@ -59,6 +60,16 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     else {
       $ingest_set = NULL;
     }
+  }
+  if (isset($ingest_set) && !isset($context['sandbox']['set_count'])) {
+    // Grab a count of the number of items in the set.
+    $count = db_select('islandora_batch_queue', 'q')
+      ->fields('q', array())
+      ->condition('sid', $ingest_set)
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    $context['sandbox']['set_count'] = intval($count);
   }
 
   if (!isset($timeout)) {
@@ -134,9 +145,20 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     // We finished the queue of objects.
     $context['finished'] = 1;
   }
+  elseif (isset($context['sandbox']['set_count'])) {
+    // We're not done, but we have a restricted set of things... Let's report
+    // how far along we are.
+    $context['sandbox']['current'] = $context['results']['count'];
+    $context['finished'] = 1.0 * $context['sandbox']['current'] / $context['sandbox']['set_count'];
+  }
   else {
     // Otherwise, make us get scheduled again.
-    $context['finished'] = 0;
+    // XXX: Count of loops is just to offer /some/ indication of progress...
+    // estimated times will be meaningless.
+    $context['sandbox']['loops'] = isset($context['sandbox']['loops']) ?
+      ($context['sandbox']['loops'] + 1) :
+      1;
+    $context['finished'] = 1.0 * $context['sandbox']['loops'] / ($context['sandbox']['loops'] + 1);
   }
 
   $context['results']['timer'] = timer_stop(ISLANDORA_BATCH_TIMER_NAME);
@@ -154,10 +176,7 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
  */
 function islandora_batch_restrict_to_set($query, $table_alias, $ingest_set) {
   if ($ingest_set) {
-    $map_function = function ($o) {
-      return $o->id;
-    };
-    $query->condition("$table_alias.id", array_map($map_function, $ingest_set));
+    $query->condition("$table_alias.sid", $ingest_set);
   }
 }
 
@@ -194,21 +213,33 @@ function islandora_batch_get_parents($ingest_set) {
 }
 
 /**
- * Get all objects which are ready to be ingested.
+ * Get just the query to find all objects which are ready to be ingested.
  */
-function islandora_batch_get_ready($ingest_set) {
+function islandora_batch_get_ready_query($ingest_set) {
   // Select other objects which are ready to be processed.
   $other_query = db_select('islandora_batch_queue', 'q')
     ->fields('q')
-    ->fields('s', array('state'))
-    ->range(0, 100);
+    ->fields('s', array('state'));
 
   islandora_batch_restrict_to_set($other_query, 'q', $ingest_set);
 
   $other_alias = $other_query->join('islandora_batch_state', 's',
     'q.id = s.id AND s.state = :s_state', array(':s_state' => ISLANDORA_BATCH_STATE__READY));
 
-  return $other_query->execute();
+  return $other_query;
+}
+
+/**
+ * Get all objects which are ready to be ingested.
+ */
+function islandora_batch_get_ready($ingest_set, $count = 100) {
+  $q = islandora_batch_get_ready_query($ingest_set);
+
+  if ($count > 0) {
+    $q->range(0, $count);
+  }
+
+  return $q->execute();
 }
 
 /**

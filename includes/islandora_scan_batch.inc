@@ -26,7 +26,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
    *   - name: The filename without its extension.
    */
   protected function scan() {
-    $method = "scan_" . $this->getTargetType();
+    $method = "scan" . ucfirst($this->getTargetType());
     return $this->$method($this->getTarget());
   }
 
@@ -227,7 +227,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
 
     if (!isset($this['OBJ'])) {
       $meta = array_map(NULL, array('xml', 'mrc'));
-      $other = array_diff_key($this->object_info, $meta);
+      $other = array_diff_key($this->objectInfo, $meta);
 
       foreach ($other as $obj) {
         list($dsid, $mimetype) = static::determineDSIDAndMimetype($obj->filename);
@@ -268,7 +268,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
     if ($mime_detect === NULL || $dsids === NULL) {
       $mime_detect = new MimeDetect();
       module_load_include('inc', 'islandora', 'includes/utilities');
-      $models = (array) $this->preprocessor_parameters['content_models'];
+      $models = (array) $this->preprocessorParameters['content_models'];
       $dsids = islandora_get_datastreams_requirements_from_models($models);
     }
 
@@ -357,15 +357,15 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
       $mods_datastream->label = 'MODS Record';
 
       // If we have an XML stream which is:
-      if (isset($this->object_info['xml'])) {
-        $xml = file_get_contents($this->object_info['xml']->uri);
+      if (isset($this->objectInfo['xml'])) {
+        $xml = file_get_contents($this->objectInfo['xml']->uri);
 
         if ($xml) {
           $s_xml = new SimpleXMLElement($xml);
           // MODS, set.
           if ($s_xml->getName() == 'mods') {
             // XXX: Should probably create a resource entry.
-            $mods_datastream->setContentFromFile($this->object_info['xml']->uri, FALSE);
+            $mods_datastream->setContentFromFile($this->objectInfo['xml']->uri, FALSE);
           }
           // MARCXML, transform to MODS and set.
           elseif ($s_xml->getName() == 'record') {
@@ -389,7 +389,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
       }
 
       // We use some Java code from LoC to transform binary MARC to MODS.
-      if (!isset($mods_datastream->content) && isset($this->object_info['mrc'])) {
+      if (!isset($mods_datastream->content) && isset($this->objectInfo['mrc'])) {
         // Generate some MODS from binary MARC.
         // Get the java executable.
         $java = variable_get('islandora_batch_java', 'java');
@@ -397,7 +397,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
         $temp_file_mods = tempnam('/tmp', 'mods');
 
         // Copy the file, so we're sure it's accessible on the filesystem.
-        copy($this->object_info['mrc']->uri, $temp_file_marc);
+        copy($this->objectInfo['mrc']->uri, $temp_file_marc);
         $absolute = realpath($dir);
 
         // The command to run.
@@ -459,14 +459,14 @@ EOXML;
       $dc_datastream->mimetype = 'text/xml';
       $dc_datastream->label = 'DC Record';
 
-      if (isset($this->object_info['xml'])) {
-        $xml = file_get_contents($this->object_info['xml']->uri);
+      if (isset($this->objectInfo['xml'])) {
+        $xml = file_get_contents($this->objectInfo['xml']->uri);
 
         if ($xml) {
           $s_xml = new SimpleXMLElement($xml);
           if ($s_xml->getName() == 'dc') {
             // XXX: Should probably create a resource entry.
-            $dc_datastream->setContentFromFile($this->object_info['xml']->uri, FALSE);
+            $dc_datastream->setContentFromFile($this->objectInfo['xml']->uri, FALSE);
           }
         }
       }
@@ -494,9 +494,9 @@ EOXML;
    * Add collection and content model relationships.
    */
   public function addRelationships() {
-    $collection = $this->preprocessor_parameters['parent'];
-    $predicate = $this->preprocessor_parameters['parent_relationship_pred'];
-    $uri = $this->preprocessor_parameters['parent_relationship_uri'];
+    $collection = $this->preprocessorParameters['parent'];
+    $predicate = $this->preprocessorParameters['parent_relationship_pred'];
+    $uri = $this->preprocessorParameters['parent_relationship_uri'];
 
     $this->relationships->add($uri, $predicate, $collection);
     $this->addContentModelRelationships();
@@ -506,6 +506,6 @@ EOXML;
    * Add the content model relationship(s).
    */
   protected function addContentModelRelationships() {
-    $this->models = $this->preprocessor_parameters['content_models'];
+    $this->models = $this->preprocessorParameters['content_models'];
   }
 }
