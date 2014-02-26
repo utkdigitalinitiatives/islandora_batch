@@ -63,7 +63,9 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
   }
   if (isset($ingest_set) && !isset($context['sandbox']['set_count'])) {
     // Grab a count of the number of items in the set.
-    $count = islandora_batch_get_ready_query($ingest_set)
+    $count = db_select('islandora_batch_queue', 'q')
+      ->fields('q', array())
+      ->condition('sid', $ingest_set)
       ->countQuery()
       ->execute()
       ->fetchField();
