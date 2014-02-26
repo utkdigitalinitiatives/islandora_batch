@@ -74,3 +74,10 @@ function islandora_batch_ingest(array $parameters) {
   islandora_batch_set_operations($parameters);
   batch_process();
 }
+
+function islandora_batch_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'islandora_batch') . '/views',
+  );
+}
