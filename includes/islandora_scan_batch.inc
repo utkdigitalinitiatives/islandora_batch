@@ -26,7 +26,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
    *   - name: The filename without its extension.
    */
   protected function scan() {
-    $method = "scan_" . $this->getTargetType();
+    $method = "scan" . ucfirst($this->getTargetType());
     return $this->$method($this->getTarget());
   }
 
@@ -268,7 +268,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
     if ($mime_detect === NULL || $dsids === NULL) {
       $mime_detect = new MimeDetect();
       module_load_include('inc', 'islandora', 'includes/utilities');
-      $models = (array) $this->preprocessor_parameters['content_models'];
+      $models = (array) $this->preprocessorParameters['content_models'];
       $dsids = islandora_get_datastreams_requirements_from_models($models);
     }
 
@@ -494,9 +494,9 @@ EOXML;
    * Add collection and content model relationships.
    */
   public function addRelationships() {
-    $collection = $this->preprocessor_parameters['parent'];
-    $predicate = $this->preprocessor_parameters['parent_relationship_pred'];
-    $uri = $this->preprocessor_parameters['parent_relationship_uri'];
+    $collection = $this->preprocessorParameters['parent'];
+    $predicate = $this->preprocessorParameters['parent_relationship_pred'];
+    $uri = $this->preprocessorParameters['parent_relationship_uri'];
 
     $this->relationships->add($uri, $predicate, $collection);
     $this->addContentModelRelationships();
@@ -506,6 +506,6 @@ EOXML;
    * Add the content model relationship(s).
    */
   protected function addContentModelRelationships() {
-    $this->models = $this->preprocessor_parameters['content_models'];
+    $this->models = $this->preprocessorParameters['content_models'];
   }
 }
