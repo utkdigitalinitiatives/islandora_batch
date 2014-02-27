@@ -7,5 +7,6 @@ dependencies[] = islandora
 files[] = includes/preprocessor_base.inc
 files[] = includes/islandora_batch_object_base.inc
 files[] = includes/islandora_scan_batch.inc
+files[] = views/handlers/IslandoraBatchStateFieldHandler.inc
 php = 5.3
 
