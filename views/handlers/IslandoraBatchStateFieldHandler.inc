@@ -16,7 +16,9 @@ class IslandoraBatchStateFieldHandler extends views_handler_field {
       ISLANDORA_BATCH_STATE__PENDING_CHILDREN => t('Not ready to ingest; children pending'),
       ISLANDORA_BATCH_STATE__DONE => t('Ingested'),
     );
-    $tokens['[state-text]'] = $map[$tokens['[state]']];
+    if (isset($tokens['[state]'])) {
+      $tokens['[state-text]'] = $map[$tokens['[state]']];
+    }
   }
 
   /**
