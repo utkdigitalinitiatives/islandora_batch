@@ -47,8 +47,22 @@ function islandora_batch_menu() {
     'file' => 'includes/menu.inc',
   );
   $items['islandora_batch/set/%/delete'] = array(
+    'title' => 'Delete items in  "@set" from queue',
+    'title arguments' => array('@set' => 2),
+    'page callback' => 'islandora_batch_delete_set_page_callback',
+    'page arguments' => array(2),
+    'access callback' => 'islandora_batch_set_access',
+    'access arguments' => array(2),
+    'file' => 'includes/menu.inc',
   );
   $items['islandora_batch/set/%/set_state'] = array(
+    'title' => 'Set state on items in "@set" in queue',
+    'title arguments' => array('@set' => 2),
+    'page callback' => 'islandora_batch_set_set_items_state_page_callback',
+    'page arguments' => array(2),
+    'access callback' => 'islandora_batch_set_access',
+    'access arguments' => array(2),
+    'file' => 'includes/menu.inc',
   );
 
   return $items;
