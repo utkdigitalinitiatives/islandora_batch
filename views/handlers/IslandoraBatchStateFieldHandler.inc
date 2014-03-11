@@ -8,6 +8,8 @@ class IslandoraBatchStateFieldHandler extends views_handler_field {
   /**
    * Inherits.
    */
+  //@codingStandardsIgnoreStart
+  // XXX: Views code uses underscores... Shrug?
   function add_self_tokens(&$tokens, $item) {
     $map = array(
       ISLANDORA_BATCH_STATE__ERROR => t('Error'),
@@ -27,4 +29,5 @@ class IslandoraBatchStateFieldHandler extends views_handler_field {
   function document_self_tokens(&$tokens) {
     $tokens['[state-text]'] = t('A human-readable string representing the state.');
   }
+  //@codingStandardsIgnoreEnd
 }

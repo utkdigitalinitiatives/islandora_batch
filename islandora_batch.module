@@ -77,7 +77,7 @@ function islandora_batch_menu() {
  * @param string $id
  *   A string representing the ID of an item in the queue.
  *
- * @return boolean
+ * @return bool
  *   TRUE if the current user has permission to manage all items, or the item
  *   is in a set owned by the given user; otherwise, FALSE.
  */
@@ -96,7 +96,7 @@ function islandora_batch_item_access($id) {
  * @param string $id
  *   A string representing the ID of an set in the queue.
  *
- * @return boolean
+ * @return bool
  *   TRUE if the current user has permission to manage all sets, or the set
  *   is in a set owned by the given user; otherwise, FALSE.
  */
@@ -152,6 +152,9 @@ function islandora_batch_ingest(array $parameters) {
   batch_process();
 }
 
+/**
+ * Implements hook_views_api().
+ */
 function islandora_batch_views_api() {
   return array(
     'api' => 3,

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @file
+ * Default views hook.
+ */
+
+/**
+ * Implements hook_views_default_views().
+ */
 function islandora_batch_views_default_views() {
   $views = array();
 

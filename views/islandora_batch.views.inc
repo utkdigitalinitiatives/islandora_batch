@@ -34,7 +34,8 @@ function islandora_batch_views_data() {
       'help' => t('Identifier of an item in the queue.'),
       'field' => array(
         'handler' => 'views_handler_field',
-        'click sortable' => TRUE, // This is use by the table display plugin.
+        // This is use by the table display plugin.
+        'click sortable' => TRUE,
       ),
       'sort' => array(
         'handler' => 'views_handler_sort',
@@ -51,7 +52,8 @@ function islandora_batch_views_data() {
       'help' => t('Identifier of the parent of the current item.'),
       'field' => array(
         'handler' => 'views_handler_field',
-        'click sortable' => TRUE, // This is use by the table display plugin.
+        // This is use by the table display plugin.
+        'click sortable' => TRUE,
       ),
       'sort' => array(
         'handler' => 'views_handler_sort',
@@ -80,9 +82,8 @@ function islandora_batch_views_data() {
         'handler' => 'views_handler_argument_numeric',
       ),
       'relationship' => array(
-        'base' => 'islandora_batch_set', // The name of the table to join with.
-        'base field' => 'id', // The name of the field on the joined table.
-        // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
+        'base' => 'islandora_batch_set',
+        'base field' => 'id',
         'handler' => 'views_handler_relationship',
         'label' => t('Associated Set'),
         'title' => t('Associated Set'),
@@ -123,7 +124,7 @@ function islandora_batch_views_data() {
       ),
       'argument' => array(
         'handler' => 'views_handler_argument_user_uid',
-        'name field' => 'name', // display this field in the summary
+        'name field' => 'name',
       ),
       'filter' => array(
         'title' => t('Name'),
@@ -133,9 +134,8 @@ function islandora_batch_views_data() {
         'handler' => 'views_handler_sort',
       ),
       'relationship' => array(
-        'base' => 'users', // The name of the table to join with.
-        'base field' => 'uid', // The name of the field on the joined table.
-        // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
+        'base' => 'users',
+        'base field' => 'uid',
         'handler' => 'views_handler_relationship',
         'label' => t('Set creator'),
         'title' => t('Set Creator'),

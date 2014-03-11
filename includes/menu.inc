@@ -1,5 +1,26 @@
 <?php
 
+/**
+ * @file
+ * Page callbacks and relevant forms (and friends).
+ */
+
+/**
+ * Bit of a helper function for transforming to strings.
+ *
+ * Select options often have issues with "0", which happens to be one of our
+ * states... Map around it to avoid issues.
+ *
+ * @param array $form_state
+ *   Reference to form state, where we can stash a mapping for use in
+ *   islandora_batch_map_value().
+ *
+ * @return array
+ *   An array of two arrays:
+ *   - the first maps state number to our key used for the "options" arrays.
+ *   - the second maps our key in an "options" array to a human-readable
+ *     version, for use as the actual options array.
+ */
 function islandora_batch_get_mappings(&$form_state) {
   $keys = array(
     ISLANDORA_BATCH_STATE__ERROR => 'error',
@@ -23,14 +44,33 @@ function islandora_batch_get_mappings(&$form_state) {
 
   return array($keys, $options);
 }
+
+/**
+ * Map option value back to state number.
+ *
+ * @param string $value
+ *   A value for one of the options dealt with in
+ *   islandora_batch_get_mappings().
+ * @param array $form_state
+ *   The form state, so we can access our "stashed" mapping.
+ *
+ * @return int
+ *   The mapped state number, corresponding to $value.
+ */
 function islandora_batch_map_value($value, $form_state) {
   return $form_state['stash']['keys'][$value];
 }
 
+/**
+ * Menu page callback to delete a single item.
+ */
 function islandora_batch_delete_item_page_callback($id) {
   return drupal_get_form('islandora_batch_delete_item_form', $id);
 }
 
+/**
+ * Form building function to delete a single item.
+ */
 function islandora_batch_delete_item_form($form, &$form_state, $id) {
   form_load_include($form_state, 'inc', 'islandora_batch', 'includes/menu');
   return confirm_form($form, t('Are you sure you want to delete "@item" from the ingest queue?', array(
@@ -38,6 +78,9 @@ function islandora_batch_delete_item_form($form, &$form_state, $id) {
   )), 'islandora_batch/reports/queue');
 }
 
+/**
+ * Form submission handler, to delete and single item.
+ */
 function islandora_batch_delete_item_form_submit(&$form, &$form_state) {
   list($id) = $form_state['build_info']['args'];
   $transaction = db_transaction();
@@ -55,10 +98,16 @@ function islandora_batch_delete_item_form_submit(&$form, &$form_state) {
   )));
 }
 
+/**
+ * Menu page callback, to set the state for a single item.
+ */
 function islandora_batch_set_item_state_page_callback($id) {
   return drupal_get_form('islandora_batch_set_item_state_form', $id);
 }
 
+/**
+ * Form buidling function, to set the state for a single item.
+ */
 function islandora_batch_set_item_state_form($form, &$form_state, $id) {
   list($keys, $options) = islandora_batch_get_mappings($form_state);
 
@@ -79,6 +128,9 @@ function islandora_batch_set_item_state_form($form, &$form_state, $id) {
   )), 'islandora_batch/reports/queue');
 }
 
+/**
+ * Form submission handler, to set the state for a single item.
+ */
 function islandora_batch_set_item_state_form_submit(&$form, &$form_state) {
   list($id) = $form_state['build_info']['args'];
   $state = $form_state['values']['state'];
@@ -92,10 +144,16 @@ function islandora_batch_set_item_state_form_submit(&$form, &$form_state) {
   )));
 }
 
+/**
+ * Menu callback, to set the state for all items in a batch set.
+ */
 function islandora_batch_set_set_items_state_page_callback($id) {
   return drupal_get_form('islandora_batch_set_set_items_state_form', $id);
 }
 
+/**
+ * Form building function, to set the state for all items in a batch set.
+ */
 function islandora_batch_set_set_items_state_form($form, &$form_state, $id) {
   form_load_include($form_state, 'inc', 'islandora_batch', 'includes/menu');
   list($keys, $options) = islandora_batch_get_mappings($form_state);
@@ -120,6 +178,9 @@ function islandora_batch_set_set_items_state_form($form, &$form_state, $id) {
   )), "islandora_batch/reports/set");
 }
 
+/**
+ * Form submission handler, to set the state for all items in a batch set.
+ */
 function islandora_batch_set_set_items_state_form_submit(&$form, &$form_state) {
   list($id) = $form_state['build_info']['args'];
   $source_state = $form_state['values']['source_state'];
@@ -142,10 +203,16 @@ function islandora_batch_set_set_items_state_form_submit(&$form, &$form_state) {
   )));
 }
 
+/**
+ * Menu page callback, to delete a set and all contained items.
+ */
 function islandora_batch_delete_set_page_callback($id) {
   return drupal_get_form('islandora_batch_delete_set_form', $id);
 }
 
+/**
+ * Form building function, to delete a set and all contained items.
+ */
 function islandora_batch_delete_set_form($form, &$form_state, $id) {
   form_load_include($form_state, 'inc', 'islandora_batch', 'includes/menu');
   return confirm_form($form, t('Are you sure you want to delete the items in set "@set" from the queue?', array(
@@ -153,6 +220,9 @@ function islandora_batch_delete_set_form($form, &$form_state, $id) {
   )), "islandora_batch/reports/set");
 }
 
+/**
+ * Form submission handler, to delete a set and all contained items.
+ */
 function islandora_batch_delete_set_form_submit(&$form, &$form_state) {
   list($id) = $form_state['build_info']['args'];
   $transaction = db_transaction();

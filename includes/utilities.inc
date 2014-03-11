@@ -11,7 +11,7 @@
  * @param string $id
  *   A string representing the ID of an item in the queue.
  *
- * @return boolean
+ * @return bool
  *   TRUE if there's an entry for the given ID in the queue; otherwise, FALSE.
  */
 function islandora_batch_item_exists($id) {
@@ -33,7 +33,7 @@ function islandora_batch_item_exists($id) {
  *   An object containing a loaded Drupal user. Defaults to the global $user,
  *   if not provided.
  *
- * @return boolean
+ * @return bool
  *   TRUE if the item is in a set owned by the given user; otherwise, FALSE.
  */
 function islandora_batch_item_is_owner($id, $user = NULL) {
@@ -59,7 +59,7 @@ function islandora_batch_item_is_owner($id, $user = NULL) {
  * @param int $id
  *   An integer identifying a batch set.
  *
- * @return boolean
+ * @return bool
  *   TRUE if the batch exists; otherwise, FALSE.
  */
 function islandora_batch_set_exists($id) {
@@ -82,7 +82,7 @@ function islandora_batch_set_exists($id) {
  *   An object containing a loaded Drupal user. Defaults to the global $user,
  *   if not provided.
  *
- * @return boolean
+ * @return bool
  *   TRUE if the batch exists was created by the given user; otherwise, FALSE.
  */
 function islandora_batch_set_is_owner($id, $user = NULL) {
