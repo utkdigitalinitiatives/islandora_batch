@@ -11,8 +11,7 @@ define('ISLANDORA_BATCH_STATE__READY', 1);
 define('ISLANDORA_BATCH_STATE__PENDING_CHILDREN', 2);
 define('ISLANDORA_BATCH_STATE__DONE', 3);
 
-define('ISLANDORA_BATCH_MANAGE_ITEMS_PERMISSION', 'islandora_batch_manage_item');
-define('ISLANDORA_BATCH_MANAGE_SET_PERMISSION', 'islandora_batch_manage_set');
+define('ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION', 'islandora_batch_manage_queue');
 
 /**
  * Implements hook_menu().
@@ -84,7 +83,7 @@ function islandora_batch_menu() {
 function islandora_batch_item_access($id) {
   global $user;
   module_load_include('inc', 'islandora_batch', 'includes/utilities');
-  return islandora_batch_item_exists($id) && (user_access(ISLANDORA_BATCH_MANAGE_ITEMS_PERMISSION, $user) || islandora_batch_item_is_owner($id, $user));
+  return islandora_batch_item_exists($id) && (user_access(ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION, $user) || islandora_batch_item_is_owner($id, $user));
 }
 
 /**
@@ -103,7 +102,7 @@ function islandora_batch_item_access($id) {
 function islandora_batch_set_access($id) {
   global $user;
   module_load_include('inc', 'islandora_batch', 'includes/utilities');
-  return islandora_batch_set_exists($id) && (user_access(ISLANDORA_BATCH_MANAGE_SET_PERMISSION, $user) || islandora_batch_set_is_owner($id, $user));
+  return islandora_batch_set_exists($id) && (user_access(ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION, $user) || islandora_batch_set_is_owner($id, $user));
 }
 
 /**
@@ -160,4 +159,18 @@ function islandora_batch_views_api() {
     'api' => 3,
     'path' => drupal_get_path('module', 'islandora_batch') . '/views',
   );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function islandora_batch_permission() {
+  $perms = array();
+
+  $perms[ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION] = array(
+    'title' => t('Islandora Batch Queue Management'),
+    'description' => t('Allow management of all items and sets in the batch queue.'),
+  );
+
+  return $perms;
 }
