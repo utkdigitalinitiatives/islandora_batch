@@ -98,6 +98,13 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['header']['result']['id'] = 'result';
   $handler->display->display_options['header']['result']['table'] = 'views';
   $handler->display->display_options['header']['result']['field'] = 'result';
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area']['content'] = 'No items available.';
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
   /* Relationship: Islandora Batch: Associated Set */
   $handler->display->display_options['relationships']['sid']['id'] = 'sid';
   $handler->display->display_options['relationships']['sid']['table'] = 'islandora_batch_queue';
@@ -219,6 +226,7 @@ function islandora_batch_views_default_views() {
     t('next ›'),
     t('last »'),
     t('Displaying @start - @end of @total'),
+    t('No items available.'),
     t('Associated Set'),
     t('Set creator'),
     t('ID'),
@@ -238,6 +246,7 @@ function islandora_batch_views_default_views() {
     t('Your Batch Ingest Queue'),
     t('Admin Queue Page'),
   );
+
   $views[] = $view;
 
   $view = new view();
@@ -308,6 +317,13 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['header']['result']['id'] = 'result';
   $handler->display->display_options['header']['result']['table'] = 'views';
   $handler->display->display_options['header']['result']['field'] = 'result';
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area']['content'] = 'No sets available.';
+  $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
   /* Relationship: Islandora Batch: Set Creator */
   $handler->display->display_options['relationships']['uid']['id'] = 'uid';
   $handler->display->display_options['relationships']['uid']['table'] = 'islandora_batch_set';
@@ -487,6 +503,7 @@ function islandora_batch_views_default_views() {
     t('next ›'),
     t('last »'),
     t('Displaying @start - @end of @total'),
+    t('No sets available.'),
     t('Set creator'),
     t('Set ID'),
     t('.'),
@@ -500,6 +517,7 @@ function islandora_batch_views_default_views() {
     t('User Set Page'),
     t('Admin Set Page'),
   );
+
   $views[] = $view;
 
   return $views;
