@@ -241,5 +241,17 @@ function islandora_batch_delete_set_form_submit(&$form, &$form_state) {
   db_delete('islandora_batch_set')
     ->condition('id', $id)
     ->execute();
+
+  // Mark any files as being unused--free to be delete.
+  $q = db_select('file_usage', 'u')
+    ->fields('u', array('fid'))
+    ->condition('module', 'islandora_batch')
+    ->condition('type', 'islandora_batch_set')
+    ->execute();
+  $files = file_load_multiple($q->fetchCol());
+  foreach ($files as $file) {
+    file_usage_delete($file, 'islandora_batch', 'islandora_batch_set', $id);
+  }
+
   drupal_set_message(format_plural($deleted, 'Deleted 1 item from queue.', 'Deleted @count items from queue.'));
 }
