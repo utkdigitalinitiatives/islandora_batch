@@ -366,4 +366,19 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
  */
 function islandora_batch_finished($success, $results, $operations) {
   lock_release(ISLANDORA_BATCH_LOCK_NAME);
+  if (isset($results['ingest_set'])) {
+    drupal_set_message(filter_xss(t('Processing complete; review the !link for some additional information.', array(
+      '!queue_link' => l(t('queue'), "islandora_batch/reports/queue/{$results['ingest_set']}"),
+    ))));
+  }
+  elseif (user_access(ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION)) {
+    drupal_set_message(filter_xss(t('Processing complete; review !queue_link for some additional information.', array(
+      '!queue_link' => l(t('queue'), 'admin/reports/islandora_batch_queue'),
+    ))));
+  }
+  else {
+    drupal_set_message(filter_xss(t('Processing complete; you may be able to see some additional information in the !queue_link.', array(
+      '!queue_link' => l(t('queue'), 'islandora_batch/reports/queue'),
+    ))));
+  }
 }
