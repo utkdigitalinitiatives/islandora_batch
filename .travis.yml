@@ -20,5 +20,5 @@ script:
   - ant -buildfile sites/all/modules/islandora_batch/build.xml lint
   - $ISLANDORA_DIR/tests/scripts/line_endings.sh sites/all/modules/islandora_batch
   - drush coder-review --reviews=production,security,style,i18n,potx,sniffer islandora_batch
-  - phpcpd --names *.module,*.inc,*.test sites/all/modules/islandora_batch
+  - phpcpd --names *.module,*.inc,*.test --names-exclude *.views_default.inc sites/all/modules/islandora_batch
   - drush test-run --uri=http://localhost:8081 "Islandora Batch"
