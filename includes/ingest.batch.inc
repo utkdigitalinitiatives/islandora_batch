@@ -85,7 +85,7 @@ function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
       // lock.
       $q = db_select('semaphore', 's')
         ->fields('s', array())
-        ->condition('name', 'islandora_batch_ingest_set_%', 'LIKE')
+        ->condition('name', db_like('islandora_batch_ingest_set_') . '%', 'LIKE')
         ->condition('expire', microtime(TRUE), '>')
         ->countQuery()
         ->execute();
