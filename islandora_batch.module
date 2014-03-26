@@ -63,6 +63,15 @@ function islandora_batch_menu() {
     'access arguments' => array(2),
     'file' => 'includes/menu.inc',
   );
+  $items['islandora_batch/set/%/break_lock'] = array(
+    'title' => 'Break ingest lock on "@set"',
+    'title arguments' => array('@set' => 2),
+    'page callback' => 'islandora_batch_set_break_lock_page_callback',
+    'page arguments' => array(2),
+    'access callback' => 'islandora_batch_set_break_lock_access_callback',
+    'access arguments' => array(2),
+    'file' => 'includes/menu.inc',
+  );
 
   return $items;
 }
@@ -103,6 +112,30 @@ function islandora_batch_set_access($id) {
   global $user;
   module_load_include('inc', 'islandora_batch', 'includes/utilities');
   return islandora_batch_set_exists($id) && (user_access(ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION, $user) || islandora_batch_set_is_owner($id, $user));
+}
+
+/**
+ * Check if a lock exists, and if we have access to mess with the set.
+ *
+ * Checks as per islandora_batch_set_access(), with an additional check for the
+ * existence of a lock.
+ *
+ * @param string $id
+ *   A string representing the ID of an set in the queue.
+ *
+ * @return bool
+ *   TRUE if the set appears to be locked and the current user has permission
+ *   to manage all sets, or the set is in a set owned by the given user;
+ *   otherwise, FALSE.
+ */
+function islandora_batch_set_break_lock_access_callback($id) {
+  module_load_include('inc', 'islandora_batch', 'includes/ingest.batch');
+  $lock_name = islandora_batch_get_lock_name($id);
+
+  // NULL represents the "global" ingest lock, which we should not be allowed
+  // to break here...  Should fail in the islandora_batch_set_access() bit,
+  // but...  paranoia?
+  return $id !== NULL && !lock_may_be_available($lock_name) && islandora_batch_set_access($id);
 }
 
 /**

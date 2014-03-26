@@ -255,3 +255,56 @@ function islandora_batch_delete_set_form_submit(&$form, &$form_state) {
 
   drupal_set_message(format_plural($deleted, 'Deleted 1 item from queue.', 'Deleted @count items from queue.'));
 }
+
+/**
+ * Menu page callback to break the lock on a set.
+ */
+function islandora_batch_set_break_lock_page_callback($id) {
+  return drupal_get_form('islandora_batch_set_break_lock_form', $id);
+}
+
+/**
+ * Form building function to break the lock on a set.
+ */
+function islandora_batch_set_break_lock_form($form, &$form_state, $id) {
+  form_load_include($form_state, 'inc', 'islandora_batch', 'includes/ingest.batch');
+  $lock_name = islandora_batch_get_lock_name($id);
+
+  if (lock_may_be_available($lock_name)) {
+    $form['lock_free'] = array(
+      '#markup' => t('The lock appears to be available.'),
+    );
+  }
+  $form['warning'] = array(
+    '#markup' => t('If another user is currently processing the set, undefined behaviour may occur!'),
+    '#prefix' => '<strong>',
+    '#suffix' => '</strong>',
+  );
+
+  return confirm_form($form, t('Are you sure you with to break the lock on "@set"?', array(
+    '@set' => $id,
+  )), "islandora_batch/reports/queue/$id");
+}
+
+/**
+ * Form submission callback to break the lock on a set.
+ */
+function islandora_batch_set_break_lock_form_submit(&$form, &$form_state) {
+  list($id) = $form_state['build_info']['args'];
+  $lock_name = islandora_batch_get_lock_name($id);
+
+  $deleted = db_delete('semaphore')
+    ->condition('name', $lock_name)
+    ->execute();
+
+  if ($deleted) {
+    drupal_set_message(t('Broke lock for "@id".', array(
+      '@id' => $id,
+    )));
+  }
+  else {
+    drupal_set_message(t('Attempted to break lock for "@id"; however, a lock did not exist.', array(
+      '@id' => $id,
+    )));
+  }
+}
