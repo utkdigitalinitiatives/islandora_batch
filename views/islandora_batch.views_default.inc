@@ -27,7 +27,7 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['css_class'] = 'islandora-batch-view-table';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'access site reports';
+  $handler->display->display_options['access']['perm'] = 'ingest fedora objects';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
@@ -202,6 +202,9 @@ function islandora_batch_views_default_views() {
 
   /* Display: Admin Queue Page */
   $handler = $view->new_display('page', 'Admin Queue Page', 'islandora_batch_queue_admin');
+  $handler->display->display_options['defaults']['access'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['access']['perm'] = 'islandora_batch_manage_queue';
   $handler->display->display_options['path'] = 'admin/reports/islandora_batch_queue';
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Islandora Batch Queue';
@@ -266,7 +269,7 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['group_by'] = TRUE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'access site reports';
+  $handler->display->display_options['access']['perm'] = 'ingest fedora objects';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
@@ -479,6 +482,9 @@ function islandora_batch_views_default_views() {
 
   /* Display: Admin Set Page */
   $handler = $view->new_display('page', 'Admin Set Page', 'islandora_batch_sets_admin');
+  $handler->display->display_options['defaults']['access'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['access']['perm'] = 'islandora_batch_manage_queue';
   $handler->display->display_options['path'] = 'admin/reports/islandora_batch_sets';
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Islandora Batch Sets';
