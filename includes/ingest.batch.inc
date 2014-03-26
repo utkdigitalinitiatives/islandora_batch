@@ -86,11 +86,16 @@ function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
       $q = db_select('semaphore', 's')
         ->fields('s', array())
         ->condition('name', 'islandora_batch_ingest_set_%', 'LIKE')
-        ->condition('expire', microtime(TRUE), '<')
+        ->condition('expire', microtime(TRUE), '>')
         ->countQuery()
         ->execute();
       $num_sets_locked = intval($q->fetchField());
-      return $num_sets_locked === 0;
+      $fully_locked = $num_sets_locked === 0;
+      if (!$fully_locked) {
+        // Appears to be sets in progress... Might as well release the lock.
+        lock_release(ISLANDORA_BATCH_LOCK_NAME);
+      }
+      return $fully_locked;
     }
     else {
       // Set batch; ensure that general batch (and current set) is not running.
