@@ -264,7 +264,7 @@ function islandora_batch_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Islandora Batch Sets';
+  $handler->display->display_options['title'] = 'Islandora Batch Ingest Sets';
   $handler->display->display_options['css_class'] = 'islandora-batch-view-table';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['group_by'] = TRUE;
@@ -399,6 +399,8 @@ function islandora_batch_views_default_views() {
 
   /* Display: User Set Page */
   $handler = $view->new_display('page', 'User Set Page', 'islandora_batch_set_page');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['title'] = 'Your Batch Ingest Sets';
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Islandora Batch: Set ID */
   $handler->display->display_options['fields']['id']['id'] = 'id';
@@ -494,7 +496,7 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['menu']['context_only_inline'] = 0;
   $translatables['islandora_batch_sets'] = array(
     t('Master'),
-    t('Islandora Batch Sets'),
+    t('Islandora Batch Ingest Sets'),
     t('more'),
     t('Apply'),
     t('Reset'),
@@ -521,6 +523,7 @@ function islandora_batch_views_default_views() {
     t('Set item states'),
     t('Delete set'),
     t('User Set Page'),
+    t('Your Batch Ingest Sets'),
     t('Admin Set Page'),
   );
 
