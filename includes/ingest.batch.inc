@@ -76,7 +76,7 @@ function islandora_batch_get_lock_name($ingest_set) {
  *   TRUE if a suitable lock was acquired; otherwise, FALSE.
  */
 function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
-  if(lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) ||
+  if (lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) ||
     ((($timeout > 0) && !lock_wait(ISLANDORA_BATCH_LOCK_NAME, $timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) ||
     (!lock_wait(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) {
 
