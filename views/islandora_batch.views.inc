@@ -90,6 +90,13 @@ function islandora_batch_views_data() {
         'help' => t('The set of objects with which the given object is associated.'),
       ),
     ),
+    'actions' => array(
+      'title' => t('Item Actions'),
+      'help' => t('A list of actions which may be performed on an item in the queue.'),
+      'field' => array(
+        'handler' => 'IslandoraBatchViewsFieldHandlerQueueActions',
+      ),
+    ),
   );
 
   $data['islandora_batch_set'] = array(
@@ -154,6 +161,13 @@ function islandora_batch_views_data() {
       ),
       'filter' => array(
         'handler' => 'views_handler_filter_date',
+      ),
+    ),
+    'actions' => array(
+      'title' => t('Set Actions'),
+      'help' => t('A list of actions which may be performed on a set of items in the queue.'),
+      'field' => array(
+        'handler' => 'IslandoraBatchViewsFieldHandlerSetActions',
       ),
     ),
   );

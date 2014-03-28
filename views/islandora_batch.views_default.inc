@@ -134,40 +134,12 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['fields']['sid']['id'] = 'sid';
   $handler->display->display_options['fields']['sid']['table'] = 'islandora_batch_queue';
   $handler->display->display_options['fields']['sid']['field'] = 'sid';
-  /* Field: Islandora Batch: ID */
-  $handler->display->display_options['fields']['id_1']['id'] = 'id_1';
-  $handler->display->display_options['fields']['id_1']['table'] = 'islandora_batch_queue';
-  $handler->display->display_options['fields']['id_1']['field'] = 'id';
-  $handler->display->display_options['fields']['id_1']['label'] = 'Delete Link';
-  $handler->display->display_options['fields']['id_1']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['id_1']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['id_1']['alter']['text'] = 'Delete item';
-  $handler->display->display_options['fields']['id_1']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['id_1']['alter']['path'] = 'islandora_batch/item/[id]/delete';
-  /* Field: Islandora Batch: ID */
-  $handler->display->display_options['fields']['id_2']['id'] = 'id_2';
-  $handler->display->display_options['fields']['id_2']['table'] = 'islandora_batch_queue';
-  $handler->display->display_options['fields']['id_2']['field'] = 'id';
-  $handler->display->display_options['fields']['id_2']['label'] = 'Set state link';
-  $handler->display->display_options['fields']['id_2']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['id_2']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['id_2']['alter']['text'] = 'Set item state';
-  $handler->display->display_options['fields']['id_2']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['id_2']['alter']['path'] = 'islandora_batch/item/[id]/set_state';
-  /* Field: Global: Contextual Links */
-  $handler->display->display_options['fields']['contextual_links']['id'] = 'contextual_links';
-  $handler->display->display_options['fields']['contextual_links']['table'] = 'views';
-  $handler->display->display_options['fields']['contextual_links']['field'] = 'contextual_links';
-  $handler->display->display_options['fields']['contextual_links']['label'] = '';
-  $handler->display->display_options['fields']['contextual_links']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['contextual_links']['fields'] = array(
-    'id_1' => 'id_1',
-    'id_2' => 'id_2',
-    'id' => 0,
-    'state' => 0,
-    'parent' => 0,
-    'sid' => 0,
-  );
+  /* Field: Islandora Batch: Item Actions */
+  $handler->display->display_options['fields']['actions']['id'] = 'actions';
+  $handler->display->display_options['fields']['actions']['table'] = 'islandora_batch_queue';
+  $handler->display->display_options['fields']['actions']['field'] = 'actions';
+  $handler->display->display_options['fields']['actions']['label'] = '';
+  $handler->display->display_options['fields']['actions']['element_label_colon'] = FALSE;
   /* Contextual filter: Islandora Batch: Set ID */
   $handler->display->display_options['arguments']['sid']['id'] = 'sid';
   $handler->display->display_options['arguments']['sid']['table'] = 'islandora_batch_queue';
@@ -242,10 +214,6 @@ function islandora_batch_views_default_views() {
     t('Set ID'),
     t('.'),
     t(','),
-    t('Delete Link'),
-    t('Delete item'),
-    t('Set state link'),
-    t('Set item state'),
     t('All'),
     t('Set %1 Batch Queue'),
     t('User Queue Page'),
@@ -386,58 +354,12 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['fields']['id_1']['field'] = 'id';
   $handler->display->display_options['fields']['id_1']['group_type'] = 'count';
   $handler->display->display_options['fields']['id_1']['label'] = 'Set Size';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
-  $handler->display->display_options['fields']['nothing']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing']['label'] = 'Contained objects';
-  $handler->display->display_options['fields']['nothing']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing']['alter']['text'] = 'Contained objects';
-  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing']['alter']['path'] = 'admin/reports/islandora_batch_queue/[id]';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing_3']['id'] = 'nothing_3';
-  $handler->display->display_options['fields']['nothing_3']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing_3']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing_3']['label'] = 'Restart Batch';
-  $handler->display->display_options['fields']['nothing_3']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing_3']['alter']['text'] = 'Restart Batch';
-  $handler->display->display_options['fields']['nothing_3']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing_3']['alter']['path'] = 'islandora_batch/set/[id]/restart_batch';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing_1']['id'] = 'nothing_1';
-  $handler->display->display_options['fields']['nothing_1']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing_1']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing_1']['label'] = 'Set item states';
-  $handler->display->display_options['fields']['nothing_1']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing_1']['alter']['text'] = 'Set item states';
-  $handler->display->display_options['fields']['nothing_1']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing_1']['alter']['path'] = 'islandora_batch/set/[id]/set_state';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing_2']['id'] = 'nothing_2';
-  $handler->display->display_options['fields']['nothing_2']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing_2']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing_2']['label'] = 'Delete set';
-  $handler->display->display_options['fields']['nothing_2']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing_2']['alter']['text'] = 'Delete set';
-  $handler->display->display_options['fields']['nothing_2']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing_2']['alter']['path'] = 'islandora_batch/set/[id]/delete';
-  /* Field: Global: Contextual Links */
-  $handler->display->display_options['fields']['contextual_links']['id'] = 'contextual_links';
-  $handler->display->display_options['fields']['contextual_links']['table'] = 'views';
-  $handler->display->display_options['fields']['contextual_links']['field'] = 'contextual_links';
-  $handler->display->display_options['fields']['contextual_links']['label'] = '';
-  $handler->display->display_options['fields']['contextual_links']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['contextual_links']['fields'] = array(
-    'nothing' => 'nothing',
-    'nothing_3' => 'nothing_3',
-    'nothing_1' => 'nothing_1',
-    'nothing_2' => 'nothing_2',
-    'id' => 0,
-    'name' => 0,
-    'created' => 0,
-    'id_1' => 0,
-  );
+  /* Field: Islandora Batch: Set Actions */
+  $handler->display->display_options['fields']['actions']['id'] = 'actions';
+  $handler->display->display_options['fields']['actions']['table'] = 'islandora_batch_set';
+  $handler->display->display_options['fields']['actions']['field'] = 'actions';
+  $handler->display->display_options['fields']['actions']['label'] = '';
+  $handler->display->display_options['fields']['actions']['element_label_colon'] = FALSE;
 
   /* Display: User Set Page */
   $handler = $view->new_display('page', 'User Set Page', 'islandora_batch_set_page');
@@ -446,6 +368,27 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['defaults']['access'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['access']['perm'] = 'ingest fedora objects';
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: User: Current */
+  $handler->display->display_options['filters']['uid_current']['id'] = 'uid_current';
+  $handler->display->display_options['filters']['uid_current']['table'] = 'users';
+  $handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';
+  $handler->display->display_options['filters']['uid_current']['relationship'] = 'uid';
+  $handler->display->display_options['filters']['uid_current']['value'] = '1';
+  $handler->display->display_options['path'] = 'islandora_batch/reports/set';
+  $handler->display->display_options['menu']['type'] = 'normal';
+  $handler->display->display_options['menu']['title'] = 'Islandora Batch Sets';
+  $handler->display->display_options['menu']['description'] = 'List of the current user\'s batch sets';
+  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['context'] = 0;
+  $handler->display->display_options['menu']['context_only_inline'] = 0;
+
+  /* Display: Admin Set Page */
+  $handler = $view->new_display('page', 'Admin Set Page', 'islandora_batch_sets_admin');
+  $handler->display->display_options['defaults']['access'] = FALSE;
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['access']['perm'] = 'islandora_batch_manage_queue';
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Islandora Batch: Set ID */
   $handler->display->display_options['fields']['id']['id'] = 'id';
@@ -469,79 +412,13 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['fields']['id_1']['field'] = 'id';
   $handler->display->display_options['fields']['id_1']['group_type'] = 'count';
   $handler->display->display_options['fields']['id_1']['label'] = 'Set Size';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
-  $handler->display->display_options['fields']['nothing']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing']['label'] = 'Contained objects';
-  $handler->display->display_options['fields']['nothing']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing']['alter']['text'] = 'Contained objects';
-  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing']['alter']['path'] = 'islandora_batch/reports/queue/[id]';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing_3']['id'] = 'nothing_3';
-  $handler->display->display_options['fields']['nothing_3']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing_3']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing_3']['label'] = 'Restart Batch';
-  $handler->display->display_options['fields']['nothing_3']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing_3']['alter']['text'] = 'Restart Batch';
-  $handler->display->display_options['fields']['nothing_3']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing_3']['alter']['path'] = 'islandora_batch/set/[id]/restart_batch';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing_1']['id'] = 'nothing_1';
-  $handler->display->display_options['fields']['nothing_1']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing_1']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing_1']['label'] = 'Set item states';
-  $handler->display->display_options['fields']['nothing_1']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing_1']['alter']['text'] = 'Set item states';
-  $handler->display->display_options['fields']['nothing_1']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing_1']['alter']['path'] = 'islandora_batch/set/[id]/set_state';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing_2']['id'] = 'nothing_2';
-  $handler->display->display_options['fields']['nothing_2']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing_2']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing_2']['label'] = 'Delete set';
-  $handler->display->display_options['fields']['nothing_2']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing_2']['alter']['text'] = 'Delete set';
-  $handler->display->display_options['fields']['nothing_2']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing_2']['alter']['path'] = 'islandora_batch/set/[id]/delete';
-  /* Field: Global: Contextual Links */
-  $handler->display->display_options['fields']['contextual_links']['id'] = 'contextual_links';
-  $handler->display->display_options['fields']['contextual_links']['table'] = 'views';
-  $handler->display->display_options['fields']['contextual_links']['field'] = 'contextual_links';
-  $handler->display->display_options['fields']['contextual_links']['label'] = '';
-  $handler->display->display_options['fields']['contextual_links']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['contextual_links']['fields'] = array(
-    'nothing' => 'nothing',
-    'nothing_3' => 'nothing_3',
-    'nothing_1' => 'nothing_1',
-    'nothing_2' => 'nothing_2',
-    'id' => 0,
-    'name' => 0,
-    'created' => 0,
-    'id_1' => 0,
-  );
-  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
-  $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: User: Current */
-  $handler->display->display_options['filters']['uid_current']['id'] = 'uid_current';
-  $handler->display->display_options['filters']['uid_current']['table'] = 'users';
-  $handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';
-  $handler->display->display_options['filters']['uid_current']['relationship'] = 'uid';
-  $handler->display->display_options['filters']['uid_current']['value'] = '1';
-  $handler->display->display_options['path'] = 'islandora_batch/reports/set';
-  $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = 'Islandora Batch Sets';
-  $handler->display->display_options['menu']['description'] = 'List of the current user\'s batch sets';
-  $handler->display->display_options['menu']['weight'] = '0';
-  $handler->display->display_options['menu']['context'] = 0;
-  $handler->display->display_options['menu']['context_only_inline'] = 0;
-
-  /* Display: Admin Set Page */
-  $handler = $view->new_display('page', 'Admin Set Page', 'islandora_batch_sets_admin');
-  $handler->display->display_options['defaults']['access'] = FALSE;
-  $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'islandora_batch_manage_queue';
+  /* Field: Islandora Batch: Set Actions */
+  $handler->display->display_options['fields']['actions']['id'] = 'actions';
+  $handler->display->display_options['fields']['actions']['table'] = 'islandora_batch_set';
+  $handler->display->display_options['fields']['actions']['field'] = 'actions';
+  $handler->display->display_options['fields']['actions']['label'] = '';
+  $handler->display->display_options['fields']['actions']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['actions']['queue_path'] = 'admin/reports/islandora_batch_queue';
   $handler->display->display_options['path'] = 'admin/reports/islandora_batch_sets';
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Islandora Batch Sets';
@@ -574,10 +451,6 @@ function islandora_batch_views_default_views() {
     t('Set Creator'),
     t('Created Date'),
     t('Set Size'),
-    t('Contained objects'),
-    t('Restart Batch'),
-    t('Set item states'),
-    t('Delete set'),
     t('User Set Page'),
     t('Your Batch Ingest Sets'),
     t('Admin Set Page'),
