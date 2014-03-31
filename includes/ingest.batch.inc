@@ -69,16 +69,20 @@ function islandora_batch_get_lock_name($ingest_set) {
  *   queue.
  * @param float $timeout
  *   The total amount of time for which we want to process a batch, in seconds.
+ *   A negative value indicates that we are to be processing for an undefined
+ *   amount of time.
  * @param float $lock_timeout
- *   The amount of time for which we want to acquire the lock.
+ *   The amount of time for which we want to acquire the lock, in seconds.
  *
  * @return bool
  *   TRUE if a suitable lock was acquired; otherwise, FALSE.
  */
 function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
-  if (lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) ||
-    ((($timeout > 0) && !lock_wait(ISLANDORA_BATCH_LOCK_NAME, $timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) ||
-    (!lock_wait(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) {
+  $globally_locked = lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) ||
+    ((($timeout >= 0) && !lock_wait(ISLANDORA_BATCH_LOCK_NAME, $timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) ||
+    (!lock_wait(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout));
+
+  if ($globally_locked) {
 
     if ($ingest_set === NULL) {
       // General batch; ensure that no other batch is running when getting
@@ -101,7 +105,7 @@ function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
       // Set batch; ensure that general batch (and current set) is not running.
       $lock_name = islandora_batch_get_lock_name($ingest_set);
       $locked = lock_acquire($lock_name, $lock_timeout) ||
-        ((($timeout > 0) && !lock_wait($lock_name, $timeout / 3) && lock_acquire($lock_name, $lock_timeout))) ||
+        ((($timeout >= 0) && !lock_wait($lock_name, $timeout / 3) && lock_acquire($lock_name, $lock_timeout))) ||
         (!lock_wait($lock_name, $lock_timeout / 3) && lock_acquire($lock_name, $lock_timeout));
       lock_release(ISLANDORA_BATCH_LOCK_NAME);
       return $locked;
@@ -119,7 +123,8 @@ function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
  *     $context['results']['ingest_set']).
  *   - timeout: An amount of time in seconds. If provided, we will only ingest
  *     until this amount of time is reached (or we think we'll exceed it,
- *     based on a running average).
+ *     based on a running average). A negative value (the default) indicates
+ *     that we should try to run the batch until we exhaust the queue.
  * @param array $context
  *   The batch context.
  */
