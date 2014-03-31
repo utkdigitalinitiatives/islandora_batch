@@ -68,7 +68,7 @@ function islandora_batch_get_lock_name($ingest_set) {
  *   An amount of time, in seconds.
  */
 function islandora_batch_get_lock_timeout($timeout) {
-  if ($timeout <= 0) {
+  if ($timeout < 0) {
     $max_exec = intval(ini_get('max_execution_time'));
     if ($max_exec > 0) {
       // max_execution_time could be 0 if run from CLI (drush?)
