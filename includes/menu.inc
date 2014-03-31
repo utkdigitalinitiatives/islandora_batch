@@ -316,7 +316,7 @@ function islandora_batch_set_restart_batch_form($form, &$form_state, $id, $manag
       '@set' => $id,
     )),
     $management ? "admin/reports/islandora_batch_queue/$id" : "islandora_batch/reports/queue/$id",
-    t('A long time might be spent "initializing," if both locks are not available.'),
+    t('A long time might be spent waiting to acquire locks if both locks are not available.'),
     t('Start batch processing')
   );
 }
