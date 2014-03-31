@@ -307,7 +307,7 @@ function islandora_batch_set_restart_batch_form($form, &$form_state, $id, $manag
     '#type' => 'checkbox',
     '#title' => t('Break set ingest lock'),
     '#description' => t('If the batch failed due to some error condition and you want to restart it now, you can break the lock; otherwise, breaking the lock and trying to batch when somebody else is processing the set will result in undefined behaviour.'),
-    '#access' => $set_lock,
+    '#access' => !$set_lock,
   );
 
   return confirm_form(
