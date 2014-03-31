@@ -2,32 +2,54 @@
 
 /**
  * @file
- * 
+ * Field handlers to render actions for queue items and sets.
  */
 
 abstract class IslandoraBatchViewsFieldHandlerActions extends views_handler_field {
+  /**
+   * Get default options.
+   *
+   * @see views_handler_field::option_definition()
+   */
   protected function optionDefinition() {
     return parent::option_definition();
   }
 
+  /**
+   * Get form to customize options.
+   *
+   * @see views_handler_field::options_form()
+   */
   protected function optionsForm(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
-    $form['redirect_base_path'] = array(
+    $form['action_base_path'] = array(
       '#type' => 'textfield',
-      '#title' => t('Redirect base path'),
-      '#description' => t('The path to which users will be directed after performing a given action.'),
-      '#default_value' => $this->redirectBasePath(),
-      '#weight' => -101,
+      '#title' => t('Base action path'),
+      '#description' => t('The path under which most actions are called.'),
+      '#default_value' => $this->actionBasePath(),
+      '#weight' => 0,
     );
   }
 
-  protected function redirectBasePath() {
-    return isset($this->options['redirect_base_path']) ?
-      $this->options['redirect_base_path'] :
+  /**
+   * Accessor for action_base_path.
+   */
+  protected function actionBasePath() {
+    return isset($this->options['action_base_path']) ?
+      $this->options['action_base_path'] :
       'no/path/set';
   }
 
+  /**
+   * Actually render the value for this item.
+   *
+   * @param object $values
+   *   All values available in the given row.
+   *
+   * @return string
+   *   Rendered markup.
+   */
   protected function renderValues($values) {
     $views_module_path = drupal_get_path('module', 'views');
 
@@ -60,7 +82,7 @@ abstract class IslandoraBatchViewsFieldHandlerActions extends views_handler_fiel
    */
   abstract protected function getLinks($values);
 
-  // @codeStandardsIgnoreStart
+  // @codingStandardsIgnoreStart
   // XXX: views uses underscores in its function names... Let's map 'em, so the
   // code doing the lifting can actually be run through coder.
   function option_definition() {
@@ -88,14 +110,17 @@ abstract class IslandoraBatchViewsFieldHandlerActions extends views_handler_fiel
   function query() {
     // No-op.
   }
-  // @codeStandardIgnoreEnd
+  // @codingStandardsIgnoreEnd
 }
 
 class IslandoraBatchViewsFieldHandlerQueueActions extends IslandoraBatchViewsFieldHandlerActions {
+  /**
+   * Inherits.
+   */
   protected function optionDefinition() {
     $options = parent::optionDefinition();
 
-    $options['redirect_base_path'] = array(
+    $options['action_base_path'] = array(
       'default' => 'islandora_batch/item',
       'translatable' => FALSE,
     );
@@ -103,12 +128,15 @@ class IslandoraBatchViewsFieldHandlerQueueActions extends IslandoraBatchViewsFie
     return $options;
   }
 
+  /**
+   * Inherits.
+   */
   protected function getLinks($values) {
     return array(
       array(
         'title' => t('Set item state'),
         'href' => format_string('!base/!item_id/set_state', array(
-          '!base' => $this->redirectBasePath(),
+          '!base' => $this->actionBasePath(),
           '!item_id' => $this->getItemId($values),
         )),
         'query' => drupal_get_destination(),
@@ -116,7 +144,7 @@ class IslandoraBatchViewsFieldHandlerQueueActions extends IslandoraBatchViewsFie
       array(
         'title' => t('Delete item'),
         'href' => format_string('!base/!item_id/delete', array(
-          '!base' => $this->redirectBasePath(),
+          '!base' => $this->actionBasePath(),
           '!item_id' => $this->getItemId($values),
         )),
         'query' => drupal_get_destination(),
@@ -124,16 +152,28 @@ class IslandoraBatchViewsFieldHandlerQueueActions extends IslandoraBatchViewsFie
     );
   }
 
+  /**
+   * Get the ID of the item.
+   *
+   * @param object $values
+   *   All the values to render in the view.
+   *
+   * @return string|int
+   *   The ID of the item.
+   */
   protected function getItemId($values) {
     return $values->id;
   }
 }
 
 class IslandoraBatchViewsFieldHandlerSetActions extends IslandoraBatchViewsFieldHandlerActions {
+  /**
+   * Inherits.
+   */
   protected function optionDefinition() {
     $options = parent::optionDefinition();
 
-    $options['redirect_base_path'] = array(
+    $options['action_base_path'] = array(
       'default' => 'islandora_batch/set',
       'translatable' => FALSE,
     );
@@ -145,6 +185,9 @@ class IslandoraBatchViewsFieldHandlerSetActions extends IslandoraBatchViewsField
     return $options;
   }
 
+  /**
+   * Inherits.
+   */
   protected function optionsForm(&$form, &$form_state) {
     parent::optionsForm($form, $form_state);
 
@@ -153,16 +196,25 @@ class IslandoraBatchViewsFieldHandlerSetActions extends IslandoraBatchViewsField
       '#title' => t('The path for the queue interface'),
       '#description' => t('Needed to be able to generate a link to the items in the given set.'),
       '#default_value' => $this->getQueuePath(),
-      '#weight' => -100,
+      '#weight' => 1,
     );
   }
 
+  /**
+   * Accessor for queue path.
+   *
+   * @return string
+   *   The path to use when we want to produce a link to the queue.
+   */
   protected function getQueuePath() {
     return isset($this->options['queue_path']) ?
       $this->options['queue_path'] :
       'no/path/set';
   }
 
+  /**
+   * Inherits.
+   */
   protected function getLinks($values) {
     return array(
       array(
@@ -175,7 +227,7 @@ class IslandoraBatchViewsFieldHandlerSetActions extends IslandoraBatchViewsField
       array(
         'title' => t('Set item states'),
         'href' => format_string('!base/!set_id/set_state', array(
-          '!base' => $this->redirectBasePath(),
+          '!base' => $this->actionBasePath(),
           '!set_id' => $this->getSetId($values),
         )),
         'query' => drupal_get_destination(),
@@ -183,7 +235,7 @@ class IslandoraBatchViewsFieldHandlerSetActions extends IslandoraBatchViewsField
       array(
         'title' => t('Delete set'),
         'href' => format_string('!base/!set_id/delete', array(
-          '!base' => $this->redirectBasePath(),
+          '!base' => $this->actionBasePath(),
           '!set_id' => $this->getSetId($values),
         )),
         'query' => drupal_get_destination(),
@@ -191,7 +243,7 @@ class IslandoraBatchViewsFieldHandlerSetActions extends IslandoraBatchViewsField
       array(
         'title' => t('Restart batch'),
         'href' => format_string('!base/!set_id/restart_batch', array(
-          '!base' => $this->redirectBasePath(),
+          '!base' => $this->actionBasePath(),
           '!set_id' => $this->getSetId($values),
         )),
         'query' => drupal_get_destination(),
@@ -199,6 +251,15 @@ class IslandoraBatchViewsFieldHandlerSetActions extends IslandoraBatchViewsField
     );
   }
 
+  /**
+   * Get the ID of the set.
+   *
+   * @param object $values
+   *   All the values to render in the view.
+   *
+   * @return string|int
+   *   The ID of the set.
+   */
   protected function getSetId($values) {
     return $values->id;
   }

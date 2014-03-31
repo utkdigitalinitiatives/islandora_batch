@@ -263,9 +263,7 @@ function islandora_batch_delete_set_form_submit(&$form, &$form_state) {
   }
 
   $form_state['redirect'] = array(
-    $management ?
-      'admin/reports/islandora_batch_sets' :
-      'islandora_batch/reports/set',
+    $management ? 'admin/reports/islandora_batch_sets' : 'islandora_batch/reports/set',
   );
   drupal_set_message(format_plural($deleted, 'Deleted 1 item from queue.', 'Deleted @count items from queue.'));
 }
