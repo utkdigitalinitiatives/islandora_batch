@@ -57,6 +57,34 @@ function islandora_batch_get_lock_name($ingest_set) {
 }
 
 /**
+ * Figure out for how long a lock should be acquired.
+ *
+ * @param float $timeout
+ *   The total amount of time for which we want to process a batch, in seconds.
+ *   A negative value indicates that we are to be processing for an undefined
+ *   amount of time.
+ *
+ * @return float
+ *   An amount of time, in seconds.
+ */
+function islandora_batch_get_lock_timeout($timeout) {
+  if ($timeout <= 0) {
+    $max_exec = intval(ini_get('max_execution_time'));
+    if ($max_exec > 0) {
+      // max_execution_time could be 0 if run from CLI (drush?)
+      return min(3600.0, $max_exec);
+    }
+    else {
+      // Lock for an hour by default.
+      return 3600.0;
+    }
+  }
+  else {
+    return min(3600.0, $timeout);
+  }
+}
+
+/**
  * Acquire lock for batch ingest.
  *
  * Different sets should be able to be run at the same time.
@@ -71,13 +99,14 @@ function islandora_batch_get_lock_name($ingest_set) {
  *   The total amount of time for which we want to process a batch, in seconds.
  *   A negative value indicates that we are to be processing for an undefined
  *   amount of time.
- * @param float $lock_timeout
- *   The amount of time for which we want to acquire the lock, in seconds.
  *
- * @return bool
- *   TRUE if a suitable lock was acquired; otherwise, FALSE.
+ * @return float|bool
+ *   The amount of time for which a suitable lock was acquired, in seconds;
+ *   otherwise, FALSE.
  */
-function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
+function islandora_batch_get_lock($ingest_set, $timeout) {
+  $lock_timeout = islandora_batch_get_lock_timeout($timeout);
+
   $globally_locked = lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) ||
     ((($timeout >= 0) && !lock_wait(ISLANDORA_BATCH_LOCK_NAME, $timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) ||
     (!lock_wait(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout));
@@ -98,8 +127,11 @@ function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
       if (!$fully_locked) {
         // Appears to be sets in progress... Might as well release the lock.
         lock_release(ISLANDORA_BATCH_LOCK_NAME);
+        return FALSE;
       }
-      return $fully_locked;
+      else {
+        return $lock_timeout;
+      }
     }
     else {
       // Set batch; ensure that general batch (and current set) is not running.
@@ -108,7 +140,12 @@ function islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout) {
         ((($timeout >= 0) && !lock_wait($lock_name, $timeout / 3) && lock_acquire($lock_name, $lock_timeout))) ||
         (!lock_wait($lock_name, $lock_timeout / 3) && lock_acquire($lock_name, $lock_timeout));
       lock_release(ISLANDORA_BATCH_LOCK_NAME);
-      return $locked;
+      if (!$locked) {
+        return FALSE;
+      }
+      else {
+        return $lock_timeout;
+      }
     }
   }
 }
@@ -157,19 +194,6 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     // XXX: Magic value (negative), causes the batch to run until all objects
     // have been processed.
     $timeout = -1.0;
-
-    $max_exec = intval(ini_get('max_execution_time'));
-    if ($max_exec > 0) {
-      // max_execution_time could be 0 if run from CLI (drush?)
-      $lock_timeout = min(3600.0, $max_exec);
-    }
-    else {
-      // Lock for an hour by default.
-      $lock_timeout = 3600.0;
-    }
-  }
-  else {
-    $lock_timeout = min(3600.0, $timeout);
   }
 
   $state = ISLANDORA_BATCH_FINISHED_SET;
@@ -185,8 +209,10 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
   // Keep track of the states of each set.
   $set_states = array();
 
+  $lock_timeout = islandora_batch_get_lock($ingest_set, $timeout);
+
   // Wait up to a third of our processing time to try to get the ingest lock.
-  if (islandora_batch_get_lock($ingest_set, $timeout, $lock_timeout)) {
+  if ($lock_timeout !== FALSE) {
     timer_start(ISLANDORA_BATCH_LOCK_TIMER);
 
     // Try ingesting objects that are waiting for children, if all the children
