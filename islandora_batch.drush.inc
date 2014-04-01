@@ -24,6 +24,10 @@ function islandora_batch_drush_command() {
         'exhausted.',
         'value' => 'optional',
       ),
+      'ingest_set' => array(
+        'description' => 'Identify a particular set to process. The default is to process ALL objects in the queue, independent of sets.',
+        'value' => 'optional',
+      ),
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
   );
@@ -121,6 +125,7 @@ function drush_islandora_batch_scan_preprocess() {
 function drush_islandora_batch_ingest() {
   $parameters = array(
     'timeout' => drush_get_option('timeout', NULL),
+    'ingest_set' => drush_get_option('ingest_set', NULL),
   );
 
   $parameters = array_filter($parameters);

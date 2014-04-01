@@ -19,6 +19,9 @@ This module requires the following modules/libraries:
 * [Islandora](https://github.com/islandora/islandora)
 * [Tuque](https://github.com/islandora/tuque)
 
+Additionally, installing and enabling [Views](https://drupal.org/project/views)
+will allow additional reporting and management displays to be rendered.
+
 
 # Installation
 

@@ -37,6 +37,120 @@ function islandora_batch_ingest_preprocess($preprocessor, &$context) {
 }
 
 /**
+ * Get the name of the lock to acquire/release.
+ *
+ * @param string|int|NULL $ingest_set
+ *   A string or integer identifying an ingest set to process. NULL indicates
+ *   that it is a general/set-independent batch, processing everything in the
+ *   queue.
+ *
+ * @return string
+ *   A string identifying a lock.
+ */
+function islandora_batch_get_lock_name($ingest_set) {
+  if ($ingest_set === NULL) {
+    return ISLANDORA_BATCH_LOCK_NAME;
+  }
+  else {
+    return "islandora_batch_ingest_set_{$ingest_set}";
+  }
+}
+
+/**
+ * Figure out for how long a lock should be acquired.
+ *
+ * @param float $timeout
+ *   The total amount of time for which we want to process a batch, in seconds.
+ *   A negative value indicates that we are to be processing for an undefined
+ *   amount of time.
+ *
+ * @return float
+ *   An amount of time, in seconds.
+ */
+function islandora_batch_get_lock_timeout($timeout) {
+  if ($timeout < 0) {
+    $max_exec = intval(ini_get('max_execution_time'));
+    if ($max_exec > 0) {
+      // max_execution_time could be 0 if run from CLI (drush?)
+      return min(3600.0, $max_exec);
+    }
+    else {
+      // Lock for an hour by default.
+      return 3600.0;
+    }
+  }
+  else {
+    return min(3600.0, $timeout);
+  }
+}
+
+/**
+ * Acquire lock for batch ingest.
+ *
+ * Different sets should be able to be run at the same time.
+ * The general/set-independent batch should not be able to run at the same time
+ * as any other batch.
+ *
+ * @param string|int|NULL $ingest_set
+ *   A string or integer identifying an ingest set to process. NULL indicates
+ *   that it is a general/set-independent batch, processing everything in the
+ *   queue.
+ * @param float $timeout
+ *   The total amount of time for which we want to process a batch, in seconds.
+ *   A negative value indicates that we are to be processing for an undefined
+ *   amount of time.
+ *
+ * @return float|bool
+ *   The amount of time for which a suitable lock was acquired, in seconds;
+ *   otherwise, FALSE.
+ */
+function islandora_batch_get_lock($ingest_set, $timeout) {
+  $lock_timeout = islandora_batch_get_lock_timeout($timeout);
+
+  $globally_locked = lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) ||
+    ((($timeout >= 0) && !lock_wait(ISLANDORA_BATCH_LOCK_NAME, $timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) ||
+    (!lock_wait(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout));
+
+  if ($globally_locked) {
+
+    if ($ingest_set === NULL) {
+      // General batch; ensure that no other batch is running when getting
+      // lock.
+      $q = db_select('semaphore', 's')
+        ->fields('s', array())
+        ->condition('name', db_like('islandora_batch_ingest_set_') . '%', 'LIKE')
+        ->condition('expire', microtime(TRUE), '>')
+        ->countQuery()
+        ->execute();
+      $num_sets_locked = intval($q->fetchField());
+      $fully_locked = $num_sets_locked === 0;
+      if (!$fully_locked) {
+        // Appears to be sets in progress... Might as well release the lock.
+        lock_release(ISLANDORA_BATCH_LOCK_NAME);
+        return FALSE;
+      }
+      else {
+        return $lock_timeout;
+      }
+    }
+    else {
+      // Set batch; ensure that general batch (and current set) is not running.
+      $lock_name = islandora_batch_get_lock_name($ingest_set);
+      $locked = lock_acquire($lock_name, $lock_timeout) ||
+        ((($timeout >= 0) && !lock_wait($lock_name, $timeout / 3) && lock_acquire($lock_name, $lock_timeout))) ||
+        (!lock_wait($lock_name, $lock_timeout / 3) && lock_acquire($lock_name, $lock_timeout));
+      lock_release(ISLANDORA_BATCH_LOCK_NAME);
+      if (!$locked) {
+        return FALSE;
+      }
+      else {
+        return $lock_timeout;
+      }
+    }
+  }
+}
+
+/**
  * Batch operation to ingest from the queue.
  *
  * @param array $parameters
@@ -46,7 +160,8 @@ function islandora_batch_ingest_preprocess($preprocessor, &$context) {
  *     $context['results']['ingest_set']).
  *   - timeout: An amount of time in seconds. If provided, we will only ingest
  *     until this amount of time is reached (or we think we'll exceed it,
- *     based on a running average).
+ *     based on a running average). A negative value (the default) indicates
+ *     that we should try to run the batch until we exhaust the queue.
  * @param array $context
  *   The batch context.
  */
@@ -62,6 +177,9 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     }
   }
   if (isset($ingest_set) && !isset($context['sandbox']['set_count'])) {
+    // Make sure we have the set set in results, if we have one.
+    $context['results']['ingest_set'] = $ingest_set;
+
     // Grab a count of the number of items in the set.
     $count = db_select('islandora_batch_queue', 'q')
       ->fields('q', array())
@@ -76,19 +194,6 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     // XXX: Magic value (negative), causes the batch to run until all objects
     // have been processed.
     $timeout = -1.0;
-
-    $max_exec = intval(ini_get('max_execution_time'));
-    if ($max_exec > 0) {
-      // max_execution_time could be 0 if run from CLI (drush?)
-      $lock_timeout = min(3600.0, $max_exec);
-    }
-    else {
-      // Lock for an hour by default.
-      $lock_timeout = 3600.0;
-    }
-  }
-  else {
-    $lock_timeout = min(3600.0, $timeout);
   }
 
   $state = ISLANDORA_BATCH_FINISHED_SET;
@@ -104,10 +209,10 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
   // Keep track of the states of each set.
   $set_states = array();
 
+  $lock_timeout = islandora_batch_get_lock($ingest_set, $timeout);
+
   // Wait up to a third of our processing time to try to get the ingest lock.
-  if (lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) ||
-    ((($timeout > 0) && !lock_wait(ISLANDORA_BATCH_LOCK_NAME, $timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) ||
-    (!lock_wait(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout / 3) && lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout))) {
+  if ($lock_timeout !== FALSE) {
     timer_start(ISLANDORA_BATCH_LOCK_TIMER);
 
     // Try ingesting objects that are waiting for children, if all the children
@@ -302,6 +407,15 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
 
     if ($object['state'] === ISLANDORA_BATCH_STATE__DONE) {
       try {
+        // XXX: Due to how the things currently work, the user name and
+        // password hash gets serialized, so later changes to the password
+        // can break things... Let's set the password again.
+        $username = $ingest_object->repository->connection->username;
+        $user = user_load_by_name($username);
+        if ($ingest_object->repository->connection->password != $user->pass) {
+          $ingest_object->repository->connection->password = $user->pass;
+        }
+
         // Push to backend.
         $ingested_object = islandora_add_object($ingest_object);
         if ($ingested_object) {
@@ -365,20 +479,41 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
  * Batch 'finished' callback.
  */
 function islandora_batch_finished($success, $results, $operations) {
-  lock_release(ISLANDORA_BATCH_LOCK_NAME);
-  if (isset($results['ingest_set'])) {
-    drupal_set_message(filter_xss(t('Processing complete; review the !queue_link for some additional information.', array(
-      '!queue_link' => l(t('queue'), "islandora_batch/reports/queue/{$results['ingest_set']}"),
-    ))));
-  }
-  elseif (user_access(ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION)) {
-    drupal_set_message(filter_xss(t('Processing complete; review !queue_link for some additional information.', array(
-      '!queue_link' => l(t('queue'), 'admin/reports/islandora_batch_queue'),
-    ))));
+  $lock_name = islandora_batch_get_lock_name(isset($results['ingest_set']) ? $results['ingest_set'] : NULL);
+  lock_release($lock_name);
+  if (module_exists('views')) {
+    module_load_include('inc', 'islandora_batch', 'includes/utilities');
+    if (isset($results['ingest_set'])) {
+      if (islandora_batch_set_is_owner($results['ingest_set'])) {
+        drupal_set_message(filter_xss(t('Processing complete; review the !queue_link for some additional information.', array(
+          '!queue_link' => l(t('queue'), "islandora_batch/reports/queue/{$results['ingest_set']}"),
+        ))));
+      }
+      elseif (user_access(ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION)) {
+        drupal_set_message(filter_xss(t('Processing complete; review the !queue_link for some additional information.', array(
+          '!queue_link' => l(t('queue'), "admin/reports/islandora_batch_queue/{$results['ingest_set']}"),
+        ))));
+      }
+      else {
+        // Shouldn't really be able to get here... Just for completeness, I
+        // guess?
+        drupal_set_message(filter_xss(t('Processing complete; you may be able to see some additional information in the !queue_link.', array(
+          '!queue_link' => l(t('queue'), 'islandora_batch/reports/queue'),
+        ))));
+      }
+    }
+    elseif (user_access(ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION)) {
+      drupal_set_message(filter_xss(t('Processing complete; review !queue_link for some additional information.', array(
+        '!queue_link' => l(t('queue'), 'admin/reports/islandora_batch_queue'),
+      ))));
+    }
+    else {
+      drupal_set_message(filter_xss(t('Processing complete; you may be able to see some additional information in the !queue_link.', array(
+        '!queue_link' => l(t('queue'), 'islandora_batch/reports/queue'),
+      ))));
+    }
   }
   else {
-    drupal_set_message(filter_xss(t('Processing complete; you may be able to see some additional information in the !queue_link.', array(
-      '!queue_link' => l(t('queue'), 'islandora_batch/reports/queue'),
-    ))));
+    drupal_set_message(t('Processing complete!'));
   }
 }
