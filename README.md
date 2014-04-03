@@ -44,7 +44,7 @@ The queue of preprocessed items can then be processed:
 
 ### Customization
 
-Custom ingests can be written by extending any of the existing preprocessors and batch object implementations.
+Custom ingests can be written by [extending](http://github.com/Islandora/islandora_batch/wiki/How-To-Extend) any of the existing preprocessors and batch object implementations. Checkout the [example implemenation](http://github.com/Islandora/islandora_batch/wiki/Example-Implementation-Tutorial) for more details.
 
 ## Troubleshooting/Issues
 
