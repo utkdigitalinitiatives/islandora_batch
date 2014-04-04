@@ -233,7 +233,7 @@ function islandora_batch_delete_set_form($form, &$form_state, $id, $management) 
  * Form submission handler, to delete a set and all contained items.
  */
 function islandora_batch_delete_set_form_submit(&$form, &$form_state) {
-  list($id) = $form_state['build_info']['args'];
+  list($id, $management) = $form_state['build_info']['args'];
   $transaction = db_transaction();
   $s = db_select('islandora_batch_queue', 'q')
     ->fields('q', array('id'))
