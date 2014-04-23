@@ -19,7 +19,7 @@ define('ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION', 'islandora_batch_manage_queue'
 function islandora_batch_menu() {
   $items = array();
 
-  $items['admin/islandora/batch'] = array(
+  $items['admin/islandora/tools/batch'] = array(
     'title' => 'Islandora Batch Settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('islandora_batch_admin_form'),
