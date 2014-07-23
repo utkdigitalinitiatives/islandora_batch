@@ -15,7 +15,7 @@ function islandora_batch_drush_command() {
     'aliases' => array('ibpro', 'ibi'),
     'description' => 'Process and ingest preprocessed entries.',
     'drupal dependencies' => array('islandora_batch'),
-    'example' => array(
+    'examples' => array(
       'drush -v --user=admin --uri=http://digital.library.yorku.ca islandora_batch_ingest',
     ),
     'options' => array(
@@ -36,7 +36,7 @@ function islandora_batch_drush_command() {
     'description' => 'Preprocess assets by scanning either a directory or a ' .
     'ZIP archive.',
     'drupal dependencies' => array('islandora_batch'),
-    'example' => array(
+    'examples' => array(
       'drush -v --user=admin --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --target=/tmp/batch_ingest',
     ),
     'options' => array(
