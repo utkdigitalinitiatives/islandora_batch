@@ -15,6 +15,10 @@
  * help out.
  */
 class IslandoraScanBatch extends IslandoraBatchPreprocessor {
+
+  // Change to FALSE if one wants to take control over hierarchical structures.
+  public $recursiveScan = TRUE;
+
   /**
    * Get a listing of "file-object"-like entries.
    *
@@ -59,13 +63,16 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
    */
   protected function scanDirectory($target) {
     $files = array();
-    $target_components = explode(DIRECTORY_SEPARATOR, $target);
-    $target = implode(DIRECTORY_SEPARATOR, $target_components);
-    $target_length = strlen($target) + 1;
-    foreach (file_scan_directory($target, $this->getPattern()) as $uri => $value) {
+    $target_path = drupal_realpath($target);
+    $target_length = strlen($target_path) + 1;
+    $directory_contents = file_scan_directory(
+      $target_path,
+      $this->getPattern(),
+      array('recurse' => $this->recursiveScan)
+    );
+    foreach ($directory_contents as $uri => $value) {
       $files[substr($uri, $target_length)] = $value;
     }
-
     return $files;
   }
 
