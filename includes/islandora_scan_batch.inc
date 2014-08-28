@@ -197,7 +197,11 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
 class IslandoraScanBatchObject extends IslandoraBatchObject {
   protected $baseName;
   protected $objectInfo;
+  // Keys in objectInfo that are not to be datastreams.
+  public $objectInfoDatastreamExclusions = array('xml', 'mrc');
   protected $preprocessorParameters;
+  // Path to MODS->DC XSLT.
+  public $mods_to_dc_transform;
 
   /**
    * Constructor for the IslandoraScanBatchObject.
@@ -205,6 +209,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
   public function __construct(IslandoraTuque $connection, $base_name, $object_info, $preprocessor_parameters) {
     parent::__construct(NULL, $connection->repository);
 
+    $this->mods_to_dc_transform = drupal_get_path('module', 'islandora_batch') . '/transforms/mods_to_dc.xsl';
     $this->baseName = $base_name;
     $this->objectInfo = $object_info;
     $this->resources = array();
@@ -233,7 +238,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
     $this->getDc();
 
     if (!isset($this['OBJ'])) {
-      $meta = array_map(NULL, array('xml', 'mrc'));
+      $meta = array_map(NULL, $this->objectInfoDatastreamExclusions);
       $other = array_diff_key($this->objectInfo, $meta);
 
       foreach ($other as $obj) {
@@ -483,7 +488,7 @@ EOXML;
         // XXX: Might want to make this use a file, instead of staging the DC
         // in the database table (inside the object we serialize).
         $new_dc = static::runXslTransform(array(
-          'xsl' => drupal_get_path('module', 'islandora_batch') . '/transforms/mods_to_dc.xsl',
+          'xsl' => $this->mods_to_dc_transform,
           'input' => $this->getMods(),
         ));
         if ($new_dc) {
