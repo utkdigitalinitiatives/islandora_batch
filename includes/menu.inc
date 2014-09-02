@@ -65,7 +65,7 @@ function islandora_batch_map_value($value, $form_state) {
  * Menu page callback to delete a single item.
  */
 function islandora_batch_delete_item_page_callback($id) {
-  return drupal_get_form('islandora_batch_delete_item_form', $id, $management);
+  return drupal_get_form('islandora_batch_delete_item_form', $id);
 }
 
 /**
