@@ -238,9 +238,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
     $this->getDc();
 
     if (!isset($this['OBJ'])) {
-      $meta = array_map(NULL, $this->objectInfoDatastreamExclusions);
-      $other = array_diff_key($this->objectInfo, $meta);
-
+      $other = array_diff_key($this->objectInfo, array_flip($this->objectInfoDatastreamExclusions));
       foreach ($other as $obj) {
         list($dsid, $mimetype) = static::determineDSIDAndMimetype($obj->filename);
         $obj_datastream = $this->constructDatastream($dsid);
