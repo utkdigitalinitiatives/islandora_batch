@@ -487,11 +487,16 @@ EOXML;
       if (!isset($dc_datastream->content)) {
         // XXX: Might want to make this use a file, instead of staging the DC
         // in the database table (inside the object we serialize).
-        $new_dc = static::runXslTransform(array(
-          'xsl' => $this->mods_to_dc_transform,
-          'input' => $this->getMods(),
-        ));
-        if ($new_dc) {
+        $mods_content = $this->getMods();
+        if ($mods_content) {
+          $new_dc = static::runXslTransform(
+            array(
+              'xsl' => $this->mods_to_dc_transform,
+              'input' => $mods_content,
+            )
+          );
+        }
+        if (isset($new_dc)) {
           $dc_datastream->content = $new_dc;
         }
       }
