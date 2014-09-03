@@ -201,7 +201,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
   public $objectInfoDatastreamExclusions = array('xml', 'mrc');
   protected $preprocessorParameters;
   // Path to MODS->DC XSLT.
-  public $mods_to_dc_transform;
+  public $modsToDcTransform;
 
   /**
    * Constructor for the IslandoraScanBatchObject.
@@ -209,7 +209,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
   public function __construct(IslandoraTuque $connection, $base_name, $object_info, $preprocessor_parameters) {
     parent::__construct(NULL, $connection->repository);
 
-    $this->mods_to_dc_transform = drupal_get_path('module', 'islandora_batch') . '/transforms/mods_to_dc.xsl';
+    $this->modsToDcTransform = drupal_get_path('module', 'islandora_batch') . '/transforms/mods_to_dc.xsl';
     $this->baseName = $base_name;
     $this->objectInfo = $object_info;
     $this->resources = array();
@@ -464,6 +464,7 @@ EOXML;
    */
   protected function getDc() {
     if (!isset($this['DC'])) {
+      $ingest_dc = FALSE;
       // TODO: Create the DC datastream on this object.
       $dc_datastream = $this->constructDatastream('DC', 'X');
       $dc_datastream->mimetype = 'text/xml';
@@ -477,6 +478,7 @@ EOXML;
           if ($s_xml->getName() == 'dc') {
             // XXX: Should probably create a resource entry.
             $dc_datastream->setContentFromFile($this->objectInfo['xml']->uri, FALSE);
+            $ingest_dc = TRUE;
           }
         }
       }
@@ -489,20 +491,22 @@ EOXML;
         if ($mods_content) {
           $new_dc = static::runXslTransform(
             array(
-              'xsl' => $this->mods_to_dc_transform,
+              'xsl' => $this->modsToDcTransform,
               'input' => $mods_content,
             )
           );
         }
         if (isset($new_dc)) {
+          $ingest_dc = TRUE;
           $dc_datastream->content = $new_dc;
         }
       }
-
-      $this->ingestDatastream($dc_datastream);
+      if ($ingest_dc) {
+        $this->ingestDatastream($dc_datastream);
+      }
     }
 
-    return $this['DC']->content;
+    return isset($this['DC']) ? $this['DC']->content : FALSE;
   }
 
   /**
