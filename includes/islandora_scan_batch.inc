@@ -17,6 +17,7 @@
 class IslandoraScanBatch extends IslandoraBatchPreprocessor {
 
   // Change to FALSE if one wants to take control over hierarchical structures.
+  // @todo Make zip scan respect this.
   public $recursiveScan = TRUE;
 
   /**
