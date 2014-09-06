@@ -180,7 +180,7 @@ function islandora_batch_schema() {
 /**
  * Implements hook_uninstall().
  */
-function islandora_batch_uninstall () {
+function islandora_batch_uninstall() {
   $variables = array(
     'islandora_batch_java',
     'islandora_repository_pid',
