@@ -444,7 +444,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
       if (!isset($mods_datastream->content)) {
         // If we do not yet have any XML, create a dumb MODS with just the
         // title, and set it...
-        $title = $this->base_name;
+        $title = $this->baseName;
 
         $mods_datastream->content = <<<EOXML
 <mods xmlns:mods="http://www.loc.gov/mods/v3" xmlns="http://www.loc.gov/mods/v3">
