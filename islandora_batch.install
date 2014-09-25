@@ -178,6 +178,16 @@ function islandora_batch_schema() {
 }
 
 /**
+ * Implements hook_uninstall().
+ */
+function islandora_batch_uninstall() {
+  $variables = array(
+    'islandora_batch_java',
+  );
+  array_walk($variables, 'variable_del');
+}
+
+/**
  * Adjust columns tracking error state.
  *
  * Should have been done when introducing the "error" state
