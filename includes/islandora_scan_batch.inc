@@ -363,8 +363,8 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
     if (!isset($this['MODS'])) {
       $dir = drupal_get_path('module', 'islandora_batch');
       // TODO: Create the MODS datastream on this object.
-      $mods_datastream = $this->constructDatastream('MODS', 'X');
-      $mods_datastream->mimetype = 'text/xml';
+      $mods_datastream = $this->constructDatastream('MODS', 'M');
+      $mods_datastream->mimetype = 'application/xml';
       $mods_datastream->label = 'MODS Record';
 
       // If we have an XML stream which is:
@@ -467,8 +467,8 @@ EOXML;
     if (!isset($this['DC'])) {
       $ingest_dc = FALSE;
       // TODO: Create the DC datastream on this object.
-      $dc_datastream = $this->constructDatastream('DC', 'X');
-      $dc_datastream->mimetype = 'text/xml';
+      $dc_datastream = $this->constructDatastream('DC', 'M');
+      $dc_datastream->mimetype = 'application/xml';
       $dc_datastream->label = 'DC Record';
 
       if (isset($this->objectInfo['xml'])) {
