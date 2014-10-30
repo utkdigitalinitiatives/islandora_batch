@@ -82,8 +82,10 @@ function islandora_batch_delete_item_form($form, &$form_state, $id) {
  * Form submission handler, to delete and single item.
  */
 function islandora_batch_delete_item_form_submit(&$form, &$form_state) {
+  module_load_include('inc', 'islandora_batch', 'includes/utilities');
   list($id) = $form_state['build_info']['args'];
   $transaction = db_transaction();
+  islandora_batch_remove_file_usages($id);
   db_delete('islandora_batch_state')
     ->condition('id', $id)
     ->execute();
@@ -96,6 +98,7 @@ function islandora_batch_delete_item_form_submit(&$form, &$form_state) {
   drupal_set_message(t('Deleted "@item" from queue.', array(
     '@item' => $id,
   )));
+
 }
 
 /**
@@ -233,11 +236,16 @@ function islandora_batch_delete_set_form($form, &$form_state, $id, $management) 
  * Form submission handler, to delete a set and all contained items.
  */
 function islandora_batch_delete_set_form_submit(&$form, &$form_state) {
+  module_load_include('inc', 'islandora_batch', 'includes/utilities');
   list($id, $management) = $form_state['build_info']['args'];
   $transaction = db_transaction();
   $s = db_select('islandora_batch_queue', 'q')
     ->fields('q', array('id'))
     ->condition('sid', $id);
+  $items = $s->execute()->fetchCol();
+  foreach ($items as $item) {
+    islandora_batch_remove_file_usages($item);
+  }
   db_delete('islandora_batch_state')
     ->condition('id', $s, 'IN')
     ->execute();

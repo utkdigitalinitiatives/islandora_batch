@@ -100,3 +100,41 @@ function islandora_batch_set_is_owner($id, $user = NULL) {
 
   return $result > 0;
 }
+
+/**
+ * Gets the batch ID for an item based upon PID.
+ *
+ * @param string $pid
+ *   The PID of item in the queue.
+ *
+ * @return int
+ *   The batch ID associated to the item in the queue.
+ */
+function islandora_batch_get_bid($pid) {
+  $bid = db_select('islandora_batch_queue', 'q')
+    ->fields('q', array('bid'))
+    ->condition('id', $pid)
+    ->execute()
+    ->fetchField();
+  return intval($bid);
+}
+
+/**
+ * Cleans up and flags files that have been processed as ready to delete.
+ *
+ * @param string $pid
+ *   The PID of the item to be cleaned up.
+ */
+function islandora_batch_remove_file_usages($pid) {
+  $bid = islandora_batch_get_bid($pid);
+  $q = db_select('file_usage', 'u')
+    ->fields('u', array('fid'))
+    ->condition('id', $bid)
+    ->condition('module', 'islandora_batch')
+    ->condition('type', 'islandora_batch_object')
+    ->execute();
+  $files = file_load_multiple($q->fetchCol());
+  foreach ($files as $file) {
+    file_usage_delete($file, 'islandora_batch', 'islandora_batch_object', $bid);
+  }
+}
