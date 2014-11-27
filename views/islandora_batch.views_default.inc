@@ -221,7 +221,7 @@ function islandora_batch_views_default_views() {
     t('Admin Queue Page'),
   );
 
-  $views[] = $view;
+  $views['islandora_batch_queue'] = $view;
 
   $view = new view();
   $view->name = 'islandora_batch_sets';
@@ -456,7 +456,7 @@ function islandora_batch_views_default_views() {
     t('Admin Set Page'),
   );
 
-  $views[] = $view;
+  $views['islandora_batch_sets'] = $view;
 
   return $views;
 }
