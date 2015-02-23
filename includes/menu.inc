@@ -82,19 +82,9 @@ function islandora_batch_delete_item_form($form, &$form_state, $id) {
  * Form submission handler, to delete and single item.
  */
 function islandora_batch_delete_item_form_submit(&$form, &$form_state) {
-  module_load_include('inc', 'islandora_batch', 'includes/utilities');
+  module_load_include('inc', 'islandora_batch', 'includes/db');
   list($id) = $form_state['build_info']['args'];
-  $transaction = db_transaction();
-  islandora_batch_remove_file_usages($id);
-  db_delete('islandora_batch_state')
-    ->condition('id', $id)
-    ->execute();
-  db_delete('islandora_batch_resources')
-    ->condition('id', $id)
-    ->execute();
-  db_delete('islandora_batch_queue')
-    ->condition('id', $id)
-    ->execute();
+  islandora_batch_delete_object($id);
   drupal_set_message(t('Deleted "@item" from queue.', array(
     '@item' => $id,
   )));
@@ -112,13 +102,9 @@ function islandora_batch_set_item_state_page_callback($id) {
  * Form buidling function, to set the state for a single item.
  */
 function islandora_batch_set_item_state_form($form, &$form_state, $id) {
+  module_load_include('inc', 'islandora_batch', 'includes/db');
   list($keys, $options) = islandora_batch_get_mappings($form_state);
-
-  $current = db_select('islandora_batch_state', 's')
-    ->fields('s', array('state'))
-    ->condition('id', $id)
-    ->execute()
-    ->fetchField();
+  $current = islandora_batch_get_object_state($id);
   $form['state'] = array(
     '#type' => 'select',
     '#title' => t('State'),
@@ -135,12 +121,10 @@ function islandora_batch_set_item_state_form($form, &$form_state, $id) {
  * Form submission handler, to set the state for a single item.
  */
 function islandora_batch_set_item_state_form_submit(&$form, &$form_state) {
+  module_load_include('inc', 'islandora_batch', 'includes/db');
   list($id) = $form_state['build_info']['args'];
   $state = $form_state['values']['state'];
-  db_update('islandora_batch_state')
-    ->fields(array('state' => islandora_batch_map_value($state, $form_state)))
-    ->condition('id', $id)
-    ->execute();
+  islandora_batch_update_object_state($id, islandora_batch_map_value($state, $form_state));
   drupal_set_message(t('Updated "@item" to "@state", in queue.', array(
     '@item' => $id,
     '@state' => $form['state']['#options'][$state],
@@ -189,22 +173,16 @@ function islandora_batch_set_set_items_state_form($form, &$form_state, $id, $man
  * Form submission handler, to set the state for all items in a batch set.
  */
 function islandora_batch_set_set_items_state_form_submit(&$form, &$form_state) {
+  module_load_include('inc', 'islandora_batch', 'includes/db');
   list($id, $management) = $form_state['build_info']['args'];
   $source_state = $form_state['values']['source_state'];
   $dest_state = $form_state['values']['dest_state'];
-  $s = db_select('islandora_batch_queue', 'q')
-    ->fields('q', array('id'))
-    ->condition('sid', $id);
-  $q = db_update('islandora_batch_state')
-    ->fields(array('state' => islandora_batch_map_value($dest_state, $form_state)))
-    ->condition('id', $s, 'IN');
-
-  if ($source_state !== 'any') {
-    $q->condition('state', islandora_batch_map_value($source_state, $form_state));
-  }
-
-  $updated = $q->execute();
-
+  // Update object states.
+  $updated = islandora_batch_update_set_object_states($id,
+    islandora_batch_map_value($dest_state, $form_state),
+    $source_state,
+    islandora_batch_map_value($source_state, $form_state)
+  );
   $form_state['redirect'] = array($management ? "admin/reports/islandora_batch_queue/$id" : "islandora_batch/reports/queue/$id");
   drupal_set_message(format_plural($updated, 'Updated 1 item in queue to "@state".', 'Updated @count items in queue to "@state".', array(
     '@state' => $form['dest_state']['#options'][$dest_state],
@@ -236,40 +214,9 @@ function islandora_batch_delete_set_form($form, &$form_state, $id, $management) 
  * Form submission handler, to delete a set and all contained items.
  */
 function islandora_batch_delete_set_form_submit(&$form, &$form_state) {
-  module_load_include('inc', 'islandora_batch', 'includes/utilities');
+  module_load_include('inc', 'islandora_batch', 'includes/db');
   list($id, $management) = $form_state['build_info']['args'];
-  $transaction = db_transaction();
-  $s = db_select('islandora_batch_queue', 'q')
-    ->fields('q', array('id'))
-    ->condition('sid', $id);
-  $items = $s->execute()->fetchCol();
-  foreach ($items as $item) {
-    islandora_batch_remove_file_usages($item);
-  }
-  db_delete('islandora_batch_state')
-    ->condition('id', $s, 'IN')
-    ->execute();
-  db_delete('islandora_batch_resources')
-    ->condition('id', $s, 'IN')
-    ->execute();
-  $deleted = db_delete('islandora_batch_queue')
-    ->condition('sid', $id)
-    ->execute();
-  db_delete('islandora_batch_set')
-    ->condition('id', $id)
-    ->execute();
-
-  // Mark any files as being unused--free to be delete.
-  $q = db_select('file_usage', 'u')
-    ->fields('u', array('fid'))
-    ->condition('module', 'islandora_batch')
-    ->condition('type', 'islandora_batch_set')
-    ->execute();
-  $files = file_load_multiple($q->fetchCol());
-  foreach ($files as $file) {
-    file_usage_delete($file, 'islandora_batch', 'islandora_batch_set', $id);
-  }
-
+  $deleted = islandora_batch_delete_set($id);
   $form_state['redirect'] = array(
     $management ? 'admin/reports/islandora_batch_sets' : 'islandora_batch/reports/set',
   );

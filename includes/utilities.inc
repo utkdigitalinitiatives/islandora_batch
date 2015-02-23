@@ -42,7 +42,7 @@ function islandora_batch_item_is_owner($id, $user = NULL) {
   }
 
   $q = db_select('islandora_batch_queue', 'q');
-  $a = $q->join('islandora_batch_set', 's', 's.id = q.sid');
+  $q->join('islandora_batch_set', 's', 's.id = q.sid');
 
   $result = $q->fields('q', 'id')
     ->condition('q.id', $id)
@@ -137,4 +137,31 @@ function islandora_batch_remove_file_usages($pid) {
   foreach ($files as $file) {
     file_usage_delete($file, 'islandora_batch', 'islandora_batch_object', $bid);
   }
+}
+
+/**
+ * Check to see if a batch set was fully ingested without errors.
+ *
+ * @param int $set_id
+ *   An integer identifying a batch set.
+ *
+ * @return bool
+ *   TRUE if the batch sets was completely ingested without errors or not
+ * importing all objects in the set; otherwise, FALSE.
+ */
+function islandora_batch_check_set_ingest($set_id) {
+  if ($set_id !== NULL) {
+    $query = db_select('islandora_batch_queue', 'q');
+    $query->join('islandora_batch_state', 's', 's.id = q.id');
+    $result = $query->fields('q', array('id'))
+      ->condition('q.sid', $set_id)
+      ->condition('s.state', ISLANDORA_BATCH_STATE__DONE, '<')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    if ($result == 0) {
+      return TRUE;
+    }
+  }
+  return FALSE;
 }

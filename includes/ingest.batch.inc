@@ -181,12 +181,8 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
     $context['results']['ingest_set'] = $ingest_set;
 
     // Grab a count of the number of items in the set.
-    $count = db_select('islandora_batch_queue', 'q')
-      ->fields('q', array())
-      ->condition('sid', $ingest_set)
-      ->countQuery()
-      ->execute()
-      ->fetchField();
+    module_load_include('inc', 'islandora_batch', 'includes/db');
+    $count = islandora_batch_get_count_of_queued_set_objects($ingest_set);
     $context['sandbox']['set_count'] = intval($count);
   }
 
@@ -436,18 +432,9 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
     }
 
     // Update the info in the database.
-    db_merge('islandora_batch_queue')
-      ->key(array('id' => $object['id']))
-      ->fields(array(
-        'data' => $object['data'],
-      ))
-      ->execute();
-    db_merge('islandora_batch_state')
-      ->key(array('id' => $object['id']))
-      ->fields(array(
-        'state' => $object['state'],
-      ))
-      ->execute();
+    module_load_include('inc', 'islandora_batch', 'includes/db');
+    islandora_batch_merge_queued_object_data($object['id'], $object['data']);
+    islandora_batch_merge_object_state($object['id'], $object['state']);
 
     $end = timer_read(ISLANDORA_BATCH_TIMER_NAME);
     if (!isset($context['results']['count'])) {
@@ -479,6 +466,7 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
  * Batch 'finished' callback.
  */
 function islandora_batch_finished($success, $results, $operations) {
+  $success = FALSE;
   $lock_name = islandora_batch_get_lock_name(isset($results['ingest_set']) ? $results['ingest_set'] : NULL);
   lock_release($lock_name);
   if (module_exists('views')) {
@@ -515,5 +503,9 @@ function islandora_batch_finished($success, $results, $operations) {
   }
   else {
     drupal_set_message(t('Processing complete!'));
+  }
+  // Check if any module is implement the hook and invoke them.
+  if (count(module_implements(ISLANDORA_BATCH_PROCESS_FINISHED_HOOK)) > 0) {
+    module_invoke_all(ISLANDORA_BATCH_PROCESS_FINISHED_HOOK, $results);
   }
 }
