@@ -14,7 +14,7 @@
  * @return int
  *   An integer of objects removed from queue.
  */
-function islandora_batch_remove_delete_set($set_id) {
+function islandora_batch_delete_set($set_id) {
   $deleted = 0;
   if ($set_id !== NULL) {
     module_load_include('inc', 'islandora_batch', 'includes/utilities');
