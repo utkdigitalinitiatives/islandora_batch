@@ -265,3 +265,30 @@ function islandora_batch_get_object_state($pid) {
     ->fetchField();
   return $state;
 }
+
+/**
+ * Check to see if a batch set was fully ingested without errors.
+ *
+ * @param int $set_id
+ *   An integer identifying a batch set.
+ *
+ * @return bool
+ *   TRUE if the batch sets was completely ingested without errors or not
+ * importing all objects in the set; otherwise, FALSE.
+ */
+function islandora_batch_check_if_set_is_fully_ingested($set_id) {
+  if ($set_id !== NULL) {
+    $query = db_select('islandora_batch_queue', 'q');
+    $query->join('islandora_batch_state', 's', 's.id = q.id');
+    $result = $query->fields('q', array('id'))
+      ->condition('q.sid', $set_id)
+      ->condition('s.state', ISLANDORA_BATCH_STATE__DONE, '<')
+      ->countQuery()
+      ->execute()
+      ->fetchField();
+    if ($result == 0) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
