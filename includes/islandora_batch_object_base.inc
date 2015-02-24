@@ -76,11 +76,8 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    *   The ID of this object, as an integer.
    */
   public function getBatchId() {
-    $id = db_select('islandora_batch_queue', 'q')
-      ->fields('q', array('bid'))
-      ->condition('id', $this->id)
-      ->execute()
-      ->fetchField();
+    module_load_include('inc', 'islandora_batch', 'includes/db');
+    $id = islandora_batch_get_batch_id_for_object($this->id);
     if ($id) {
       return intval($id);
     }

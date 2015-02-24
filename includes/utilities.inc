@@ -42,7 +42,7 @@ function islandora_batch_item_is_owner($id, $user = NULL) {
   }
 
   $q = db_select('islandora_batch_queue', 'q');
-  $a = $q->join('islandora_batch_set', 's', 's.id = q.sid');
+  $q->join('islandora_batch_set', 's', 's.id = q.sid');
 
   $result = $q->fields('q', 'id')
     ->condition('q.id', $id)
