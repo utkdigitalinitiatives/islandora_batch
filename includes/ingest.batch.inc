@@ -466,19 +466,42 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
  * Batch 'finished' callback.
  */
 function islandora_batch_finished($success, $results, $operations) {
-  $lock_name = islandora_batch_get_lock_name(isset($results['ingest_set']) ? $results['ingest_set'] : NULL);
+  module_load_include('inc', 'islandora_batch', 'includes/db');
+  $successfully_processed_sets = array();
+  $set = isset($results['ingest_set']) ? $results['ingest_set'] : NULL;
+  $process_count = isset($results['count']) ? $results['count'] : 0;
+  // If the batch ingest isn't being used on a specific batch set, then check
+  // all sets and add the ones that have been processed successfully.
+  if (!$set && $process_count > 0) {
+    $sets = islandora_batch_get_sets();
+    foreach ((array) $sets as $set) {
+      // Check to see if all objects were succesfully processed.
+      if (islandora_batch_check_if_set_is_fully_ingested($set)) {
+        $successfully_processed_sets[] = $set;
+      }
+    }
+  }
+  // If one specific batch set was ingested just make sure it's all the sets
+  // objects have been successfully ingest and add it to the array.
+  elseif ($set) {
+    // Check to see if all objects were succesfully processed.
+    if (islandora_batch_check_if_set_is_fully_ingested($set)) {
+      $successfully_processed_sets[] = $set;
+    }
+  }
+  $lock_name = islandora_batch_get_lock_name($set);
   lock_release($lock_name);
   if (module_exists('views')) {
     module_load_include('inc', 'islandora_batch', 'includes/utilities');
-    if (isset($results['ingest_set'])) {
-      if (islandora_batch_set_is_owner($results['ingest_set'])) {
+    if ($set) {
+      if (islandora_batch_set_is_owner($set)) {
         drupal_set_message(filter_xss(t('Processing complete; review the !queue_link for some additional information.', array(
-          '!queue_link' => l(t('queue'), "islandora_batch/reports/queue/{$results['ingest_set']}"),
+          '!queue_link' => l(t('queue'), "islandora_batch/reports/queue/{$set}"),
         ))));
       }
       elseif (user_access(ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION)) {
         drupal_set_message(filter_xss(t('Processing complete; review the !queue_link for some additional information.', array(
-          '!queue_link' => l(t('queue'), "admin/reports/islandora_batch_queue/{$results['ingest_set']}"),
+          '!queue_link' => l(t('queue'), "admin/reports/islandora_batch_queue/{$set}"),
         ))));
       }
       else {
@@ -503,5 +526,5 @@ function islandora_batch_finished($success, $results, $operations) {
   else {
     drupal_set_message(t('Processing complete!'));
   }
-  module_invoke_all(ISLANDORA_BATCH_PROCESS_FINISHED_HOOK, $results);
+  module_invoke_all(ISLANDORA_BATCH_PROCESS_FINISHED_HOOK, $successfully_processed_sets);
 }
