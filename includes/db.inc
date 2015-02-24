@@ -274,7 +274,7 @@ function islandora_batch_get_object_state($pid) {
  *
  * @return bool
  *   TRUE if the batch sets was completely ingested without errors or not
- * importing all objects in the set; otherwise, FALSE.
+ *   importing all objects in the set; otherwise, FALSE.
  */
 function islandora_batch_check_if_set_is_fully_ingested($set_id) {
   if ($set_id !== NULL) {

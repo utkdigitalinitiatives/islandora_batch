@@ -466,7 +466,6 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
  * Batch 'finished' callback.
  */
 function islandora_batch_finished($success, $results, $operations) {
-  $success = FALSE;
   $lock_name = islandora_batch_get_lock_name(isset($results['ingest_set']) ? $results['ingest_set'] : NULL);
   lock_release($lock_name);
   if (module_exists('views')) {
@@ -504,8 +503,5 @@ function islandora_batch_finished($success, $results, $operations) {
   else {
     drupal_set_message(t('Processing complete!'));
   }
-  // Check if any module is implement the hook and invoke them.
-  if (count(module_implements(ISLANDORA_BATCH_PROCESS_FINISHED_HOOK)) > 0) {
-    module_invoke_all(ISLANDORA_BATCH_PROCESS_FINISHED_HOOK, $results);
-  }
+  module_invoke_all(ISLANDORA_BATCH_PROCESS_FINISHED_HOOK, $results);
 }
