@@ -22,3 +22,32 @@ function hook_islandora_batch_process_finished($sets) {
     }
   }
 }
+
+/**
+ * A hook to allow for events after an item has been processed.
+ *
+ * @param AbstractObject $ingest_object
+ *   The object that has been processed for ingestion.
+ * @param int $state
+ *   The the state after ingestion attempt. 1 for successful ingestion, 0 for
+ *   failed ingestion.
+ */
+function hook_islandora_batch_object_processed($ingest_object, $state) {
+  // Send an email when an object fails batch processing.
+  $site_email = variable_get('site_mail', '');
+  if ($state === 0 && $site_email) {
+    $message = drupal_mail('islandora_batch_report', 'islandora_batch_failed_ingest', $site_email, language_default(), array(), NULL, FALSE);
+    $message['subject'] = 'Object Failed Ingesting';
+    $message['body'] = array();
+    $message['body'][] = 'Failed to ingest object ' . $ingest_object->label . ' with PID ' . $ingest_object->id;
+
+    // Retrieve the responsible implementation for this message.
+    $system = drupal_mail_system($module, $key);
+
+    // Format the message body.
+    $message = $system->format($message);
+
+    // Send e-mail.
+    $message['result'] = $system->mail($message);
+  }
+}

@@ -1,0 +1,7 @@
+name = "Islandora Batch Report"
+description = "Track batch set and objects ingested and report daily statistics to a defined email list."
+package = Islandora Tools
+dependencies[] = islandora
+dependencies[] = islandora_batch
+version = 7.x-dev
+core = 7.x
