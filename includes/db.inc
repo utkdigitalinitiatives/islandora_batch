@@ -277,18 +277,16 @@ function islandora_batch_get_object_state($pid) {
  *   importing all objects in the set; otherwise, FALSE.
  */
 function islandora_batch_check_if_set_is_fully_ingested($set_id) {
-  if ($set_id !== NULL) {
-    $query = db_select('islandora_batch_queue', 'q');
-    $query->join('islandora_batch_state', 's', 's.id = q.id');
-    $result = $query->fields('q', array('id'))
-      ->condition('q.sid', $set_id)
-      ->condition('s.state', ISLANDORA_BATCH_STATE__DONE, '<')
-      ->countQuery()
-      ->execute()
-      ->fetchField();
-    if ($result == 0) {
-      return TRUE;
-    }
+  $query = db_select('islandora_batch_queue', 'q');
+  $query->join('islandora_batch_state', 's', 's.id = q.id');
+  $result = $query->fields('q', array('id'))
+    ->condition('q.sid', $set_id)
+    ->condition('s.state', ISLANDORA_BATCH_STATE__DONE, '<')
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+  if ($result == 0) {
+    return TRUE;
   }
   return FALSE;
 }
@@ -303,18 +301,16 @@ function islandora_batch_check_if_set_is_fully_ingested($set_id) {
  *   TRUE if the batch sets has any failed to ingest objects.
  */
 function islandora_batch_check_if_set_failed_ingest($set_id) {
-  if ($set_id !== NULL) {
-    $query = db_select('islandora_batch_queue', 'q');
-    $query->join('islandora_batch_state', 's', 's.id = q.id');
-    $result = $query->fields('q', array('id'))
-      ->condition('q.sid', $set_id)
-      ->condition('s.state', ISLANDORA_BATCH_STATE__ERROR)
-      ->countQuery()
-      ->execute()
-      ->fetchField();
-    if ($result) {
-      return TRUE;
-    }
+  $query = db_select('islandora_batch_queue', 'q');
+  $query->join('islandora_batch_state', 's', 's.id = q.id');
+  $result = $query->fields('q', array('id'))
+    ->condition('q.sid', $set_id)
+    ->condition('s.state', ISLANDORA_BATCH_STATE__ERROR)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+  if ($result) {
+    return TRUE;
   }
   return FALSE;
 }
@@ -366,18 +362,16 @@ function islandora_batch_get_count_of_queued_objects_ready_to_process() {
  *   FALSE.
  */
 function islandora_batch_check_set_for_objects_ready_for_processing($set_id) {
-  if ($set_id !== NULL) {
-    $query = db_select('islandora_batch_queue', 'q');
-    $query->join('islandora_batch_state', 's', 's.id = q.id');
-    $result = $query->fields('q', array('id'))
-      ->condition('q.sid', $set_id)
-      ->condition('s.state', array(ISLANDORA_BATCH_STATE__READY, ISLANDORA_BATCH_STATE__PENDING_CHILDREN), 'IN')
-      ->countQuery()
-      ->execute()
-      ->fetchField();
-    if ($result > 0) {
-      return TRUE;
-    }
+  $query = db_select('islandora_batch_queue', 'q');
+  $query->join('islandora_batch_state', 's', 's.id = q.id');
+  $result = $query->fields('q', array('id'))
+    ->condition('q.sid', $set_id)
+    ->condition('s.state', array(ISLANDORA_BATCH_STATE__READY, ISLANDORA_BATCH_STATE__PENDING_CHILDREN), 'IN')
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+  if ($result > 0) {
+    return TRUE;
   }
   return FALSE;
 }

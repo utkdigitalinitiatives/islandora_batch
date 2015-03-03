@@ -99,13 +99,3 @@ function islandora_batch_report_schema() {
 
   return $schema;
 }
-
-/**
- * Implements hook_uninstall().
- */
-function islandora_batch_report_uninstall() {
-  $variables = array(
-    'islandora_batch_report_email_list',
-  );
-  array_walk($variables, 'variable_del');
-}
