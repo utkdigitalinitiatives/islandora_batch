@@ -6,6 +6,25 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function islandora_batch_report_menu() {
+  $items = array();
+
+  $items['admin/islandora/tools/batchreport'] = array(
+    'title' => 'Islandora Batch Reporting Settings',
+    'description' => 'Configure settings for Islandora Batch Reporting.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_batch_report_admin_form'),
+    'file' => 'includes/admin.form.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
  * Implements hook_islandora_batch_object_processed().
  *
  * Log processed objects and sets into database.
@@ -47,5 +66,19 @@ function islandora_batch_report_islandora_batch_object_processed($object, $state
  */
 function islandora_batch_report_cron() {
   module_load_include('inc', 'islandora_batch_report', 'includes/cron');
-  islandora_batch_report_generate_daily_email_report();
+  $min_wait_time = 0;
+  $timestamp = time();
+  $last_sent_report = variable_get('islandora_batch_report_daily_report_last_sent', '');
+  $send_report_after = variable_get('islandora_batch_report_send_report_after', '23:00');
+  if (!empty($last_sent_report)) {
+    // Min wait time till the report is sent again is 24 hours - cron execution.
+    $min_wait_time = strtotime('+23 hours +55 minutes', $last_sent_report);
+  }
+  // Only email the daily report one time per 24 hours after the time set by the
+  // admin to send the report after.
+  if ((empty($last_sent_report) || $timestamp > $min_wait_time) && (date('H:i') > date('H:i', strtotime($send_report_after)))) {
+    islandora_batch_report_prepare_daily_email_report();
+    // Update last run time.
+    variable_set('islandora_batch_report_daily_report_last_sent', $timestamp);
+  }
 }

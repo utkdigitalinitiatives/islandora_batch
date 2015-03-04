@@ -10,13 +10,13 @@
  */
 function islandora_batch_report_default_rules_configuration() {
   $configs = array();
-  $configs['islandora_batch_report_send_email_report'] = rules_import('
-      { "rules_islandora_batch_report_send_email_report" : {
-        "LABEL" : "islandora_batch_report_send_email_report",
+  $configs['islandora_batch_report_email_report'] = rules_import('
+      { "rules_islandora_batch_report_email_report" : {
+        "LABEL" : "islandora_batch_report_email_report",
         "PLUGIN" : "reaction rule",
         "OWNER" : "rules",
         "REQUIRES" : [ "rules", "islandora_batch_report" ],
-        "ON" : { "islandora_batch_report_send_report" : [] },
+        "ON" : { "islandora_batch_report_prepare_daily_report" : [] },
         "DO" : [
           { "mail" : {
               "to" : "[site:mail]",

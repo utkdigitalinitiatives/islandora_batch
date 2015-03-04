@@ -10,9 +10,9 @@
  */
 function islandora_batch_report_rules_event_info() {
   return array(
-    'islandora_batch_report_send_report' => array(
+    'islandora_batch_report_prepare_daily_report' => array(
       'group' => t('Islandora Batch Report'),
-      'label' => t('Send Email Report'),
+      'label' => t('Prepare Daily Report'),
       'variables' => array(
         'report_date_timestamp' => array(
           'type' => 'date',

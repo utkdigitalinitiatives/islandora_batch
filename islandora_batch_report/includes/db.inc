@@ -56,14 +56,13 @@ function islandora_batch_report_log_set($set_id, $sucessful) {
  *   The results of the query.
  */
 function islandora_batch_report_check_if_set_was_added($set_id, $sucessful) {
-  $start_of_day = strtotime("midnight", REQUEST_TIME);
-  $end_of_day   = strtotime("tomorrow", $start_of_day) - 1;
+  $last_24_hours = strtotime("-24 hours", REQUEST_TIME);
 
   $results = db_select('islandora_batch_report_sets_processed', 'q')
     ->fields('q', array('id'))
     ->condition('sid', $set_id)
     ->condition('successful', $sucessful)
-    ->condition('timestamp', array($start_of_day, $end_of_day), 'BETWEEN')
+    ->condition('timestamp', array(REQUEST_TIME, $last_24_hours), 'BETWEEN')
     ->execute()
     ->fetchField();
 
@@ -83,13 +82,12 @@ function islandora_batch_report_check_if_set_was_added($set_id, $sucessful) {
  *   The count of sets that match the requested filters.
  */
 function islandora_batch_report_get_daily_set_count($sucessful, $timestamp) {
-  $start_of_day = strtotime("midnight", $timestamp);
-  $end_of_day   = strtotime("tomorrow", $start_of_day) - 1;
+  $last_24_hours = strtotime('-24 hours', $timestamp);
 
   $count = db_select('islandora_batch_report_sets_processed', 'q')
     ->fields('q', array())
     ->condition('successful', $sucessful)
-    ->condition('timestamp', array($start_of_day, $end_of_day), 'BETWEEN')
+    ->condition('timestamp', array($timestamp, $last_24_hours), 'BETWEEN')
     ->countQuery()
     ->execute()
     ->fetchField();
@@ -110,13 +108,12 @@ function islandora_batch_report_get_daily_set_count($sucessful, $timestamp) {
  *   The count of objects that match the requested filters.
  */
 function islandora_batch_report_get_daily_object_count($sucessful, $timestamp) {
-  $start_of_day = strtotime("midnight", $timestamp);
-  $end_of_day   = strtotime("tomorrow", $start_of_day) - 1;
+  $last_24_hours = strtotime('-24 hours', $timestamp);
 
   $count = db_select('islandora_batch_report_objects_processed', 'q')
     ->fields('q', array())
     ->condition('successful', $sucessful)
-    ->condition('timestamp', array($start_of_day, $end_of_day), 'BETWEEN')
+    ->condition('timestamp', array($timestamp, $last_24_hours), 'BETWEEN')
     ->countQuery()
     ->execute()
     ->fetchField();
@@ -138,8 +135,7 @@ function islandora_batch_report_get_daily_object_count($sucessful, $timestamp) {
  */
 function islandora_batch_report_get_daily_object_count_by_content_model($sucessful, $timestamp) {
   $content_model_details = "";
-  $start_of_day = strtotime('midnight', $timestamp);
-  $end_of_day   = strtotime('tomorrow', $start_of_day) - 1;
+  $last_24_hours = strtotime('-24 hours', $timestamp);
   // Get each unique content model and count the occurances.
   $query = db_select('islandora_batch_report_objects_processed', 's')
     ->distinct()
@@ -150,7 +146,7 @@ function islandora_batch_report_get_daily_object_count_by_content_model($sucessf
       ->fields('q', array(''))
       ->condition('successful', $sucessful)
       ->condition('contentmodel', $result['contentmodel'])
-      ->condition('timestamp', array($start_of_day, $end_of_day), 'BETWEEN')
+      ->condition('timestamp', array($timestamp, $last_24_hours), 'BETWEEN')
       ->countQuery()
       ->execute()
       ->fetchField();

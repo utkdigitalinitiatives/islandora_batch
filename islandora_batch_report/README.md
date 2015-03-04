@@ -20,15 +20,18 @@ Install as usual, see [this](https://drupal.org/documentation/install/modules-th
 
 ## Configuration
 
-Current setup requires the drupal cron to be running every 1 day to get a full report breakdown.
+Current setup requires the drupal cron to be running. Through admin menu Islandora > Islandora Utilities Modules > Islandora Batch Reporting Settings
+a time can be set to limit when the daily report will be sent out to prevent sites that run fequent cron checks from sending up emails too early.  The last
+report sent will be tracked and also used to limit the report to be sent out once.
 
 ### Usage
 
-The default rule sends an email to drupal site admin email when cron is run of an ingest report with daily totals of the batch objects/sets ingested, a breakdown of objects ingested by content model, and the remaining objects/sets that remain to be ingested.  This is meant to be called by cron before the end of the day to have the report only delivered once with daily totals.
+The default rule is configured to send an email to drupal site admin email when cron is run. This email contains a batch ingest report with daily totals of the batch objects/sets ingested, a breakdown of objects ingested by content model, and the remaining objects/sets that remain to be ingested. 
+This is meant to be called by cron before the end of the day and only delivered once with daily totals.
 
 ### Customization
 
-Custom changes can be made with Rule UI enabled through Configuration > Workflow > Rules where the default rule **islandora_batch_report_send_email_report** can be overridden completely by a site admin or disabled.
+Custom changes can be made with Rule UI enabled through Configuration > Workflow > Rules where the default rule **islandora_batch_report_email_report** can be overridden completely by a site admin or disabled.
 
 ## Troubleshooting/Issues
 
