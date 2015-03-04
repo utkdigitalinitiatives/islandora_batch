@@ -15,6 +15,7 @@ define('ISLANDORA_BATCH_MANAGE_QUEUE_PERMISSION', 'islandora_batch_manage_queue'
 
 // Hooks.
 define('ISLANDORA_BATCH_PROCESS_FINISHED_HOOK', 'islandora_batch_process_finished');
+define('ISLANDORA_BATCH_OBJECT_PROCESSED_HOOK', 'islandora_batch_object_processed');
 
 /**
  * Implements hook_menu().

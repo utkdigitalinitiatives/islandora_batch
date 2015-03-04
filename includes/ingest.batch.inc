@@ -436,6 +436,9 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
     islandora_batch_merge_queued_object_data($object['id'], $object['data']);
     islandora_batch_merge_object_state($object['id'], $object['state']);
 
+    // Pass hook object and a pass/fail state for the object.
+    module_invoke_all(ISLANDORA_BATCH_OBJECT_PROCESSED_HOOK, $ingest_object, ($object['state'] === ISLANDORA_BATCH_STATE__DONE ? 1 : 0));
+
     $end = timer_read(ISLANDORA_BATCH_TIMER_NAME);
     if (!isset($context['results']['count'])) {
       $context['results']['count'] = $context['results']['sum'] = 0;

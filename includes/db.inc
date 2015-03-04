@@ -277,18 +277,101 @@ function islandora_batch_get_object_state($pid) {
  *   importing all objects in the set; otherwise, FALSE.
  */
 function islandora_batch_check_if_set_is_fully_ingested($set_id) {
-  if ($set_id !== NULL) {
-    $query = db_select('islandora_batch_queue', 'q');
-    $query->join('islandora_batch_state', 's', 's.id = q.id');
-    $result = $query->fields('q', array('id'))
-      ->condition('q.sid', $set_id)
-      ->condition('s.state', ISLANDORA_BATCH_STATE__DONE, '<')
-      ->countQuery()
-      ->execute()
-      ->fetchField();
-    if ($result == 0) {
-      return TRUE;
+  $query = db_select('islandora_batch_queue', 'q');
+  $query->join('islandora_batch_state', 's', 's.id = q.id');
+  $result = $query->fields('q', array('id'))
+    ->condition('q.sid', $set_id)
+    ->condition('s.state', ISLANDORA_BATCH_STATE__DONE, '<')
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+  if ($result == 0) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Check to see if a batch set has failed ingesting any objects.
+ *
+ * @param int $set_id
+ *   An integer identifying a batch set.
+ *
+ * @return bool
+ *   TRUE if the batch sets has any failed to ingest objects.
+ */
+function islandora_batch_check_if_set_failed_ingest($set_id) {
+  $query = db_select('islandora_batch_queue', 'q');
+  $query->join('islandora_batch_state', 's', 's.id = q.id');
+  $result = $query->fields('q', array('id'))
+    ->condition('q.sid', $set_id)
+    ->condition('s.state', ISLANDORA_BATCH_STATE__ERROR)
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+  if ($result) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Get the count of queued sets that are ready for processing.
+ *
+ * @return int
+ *   The count of queued sets that are ready for processing.
+ */
+function islandora_batch_get_count_of_queued_sets_ready_to_process() {
+  $count = 0;
+  // Get all the sets in the queue and check each one to see if they are ready.
+  $sets = islandora_batch_get_sets();
+  if (!empty($sets)) {
+    foreach ($sets as $set) {
+      if (islandora_batch_check_set_for_objects_ready_for_processing($set)) {
+        $count++;
+      }
     }
+  }
+  return $count;
+}
+
+/**
+ * Get the count of queued objects ready for processing.
+ *
+ * @return int
+ *   The count of all queued objects ready for processing.
+ */
+function islandora_batch_get_count_of_queued_objects_ready_to_process() {
+  $count = db_select('islandora_batch_state', 'q')
+    ->fields('q', array())
+    ->condition('state', array(ISLANDORA_BATCH_STATE__READY, ISLANDORA_BATCH_STATE__PENDING_CHILDREN), 'IN')
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+  return $count;
+}
+
+/**
+ * Check to see if a batch set has objects that need processing.
+ *
+ * @param int $set_id
+ *   An integer identifying a batch set.
+ *
+ * @return bool
+ *   TRUE if the batch sets has objects that are ready for ingesting; otherwise,
+ *   FALSE.
+ */
+function islandora_batch_check_set_for_objects_ready_for_processing($set_id) {
+  $query = db_select('islandora_batch_queue', 'q');
+  $query->join('islandora_batch_state', 's', 's.id = q.id');
+  $result = $query->fields('q', array('id'))
+    ->condition('q.sid', $set_id)
+    ->condition('s.state', array(ISLANDORA_BATCH_STATE__READY, ISLANDORA_BATCH_STATE__PENDING_CHILDREN), 'IN')
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+  if ($result > 0) {
+    return TRUE;
   }
   return FALSE;
 }
