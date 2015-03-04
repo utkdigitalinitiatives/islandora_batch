@@ -20,7 +20,7 @@ function islandora_batch_report_prepare_daily_email_report() {
   // no need to concatenate " " on each variable.  For output spacing
   // consistency always concatenate " " at the start.
 
-  rules_invoke_event('islandora_batch_report_send_report',
+  rules_invoke_event('islandora_batch_report_prepare_daily_report',
     $timestamp,
     " " . islandora_batch_report_get_daily_object_count(1, $timestamp),
     " " . islandora_batch_report_get_daily_object_count(0, $timestamp),
