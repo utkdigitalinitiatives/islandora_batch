@@ -71,8 +71,11 @@ function islandora_batch_report_cron() {
   $last_sent_report = variable_get('islandora_batch_report_daily_report_last_sent', '');
   $send_report_after = variable_get('islandora_batch_report_send_report_after', '23:00');
   if (!empty($last_sent_report)) {
-    // Min wait time till the report is sent again is 24 hours - cron execution.
-    $min_wait_time = strtotime('+23 hours +55 minutes', $last_sent_report);
+    // Min wait time till the report is sent again is 24 hours - cron (4 min),
+    // since the drupal cron has a hard coded max execution time of 240 seconds.
+    // This takes care of the report triggering the rule invoke multiple times
+    // within the same period of time.
+    $min_wait_time = strtotime('+23 hours +56 minutes', $last_sent_report);
   }
   // Only email the daily report one time per 24 hours after the time set by the
   // admin to send the report after.
