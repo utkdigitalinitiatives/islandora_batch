@@ -12,7 +12,7 @@ function islandora_batch_report_admin_form($form, $form_state) {
   $form['islandora_batch_report_send_report_after'] = array(
     '#type' => 'textfield',
     '#title' => t('A Time to send daily batch report after'),
-    '#description' => t('Using a 24-hour clock (in the format hh:mm), specify the earliest time to send daily reports after, so that batch reports aren\'t sent throughout the day.'),
+    '#description' => t('Using a 24-hour clock (in the format hh:mm), specify the earliest time to send daily reports after, so that batch reports are not sent throughout the day.'),
     '#required' => TRUE,
     '#default_value' => variable_get('islandora_batch_report_send_report_after', '23:00'),
   );
