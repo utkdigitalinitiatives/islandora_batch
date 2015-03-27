@@ -494,7 +494,7 @@ function islandora_batch_finished($success, $results, $operations) {
   }
   $lock_name = islandora_batch_get_lock_name($set);
   lock_release($lock_name);
-  if (module_exists('views')) {
+  if (module_exists('views') && variable_get('islandora_batch_link_when_finished', TRUE)) {
     module_load_include('inc', 'islandora_batch', 'includes/utilities');
     if ($set) {
       if (islandora_batch_set_is_owner($set)) {
