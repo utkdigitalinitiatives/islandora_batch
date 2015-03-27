@@ -183,6 +183,7 @@ function islandora_batch_schema() {
 function islandora_batch_uninstall() {
   $variables = array(
     'islandora_batch_java',
+    'islandora_batch_link_when_finished',
   );
   array_walk($variables, 'variable_del');
 }
