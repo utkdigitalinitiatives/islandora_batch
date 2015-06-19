@@ -136,5 +136,6 @@ function islandora_batch_remove_file_usages($pid) {
   $files = file_load_multiple($q->fetchCol());
   foreach ($files as $file) {
     file_usage_delete($file, 'islandora_batch', 'islandora_batch_object', $bid);
+    file_delete($file);
   }
 }
