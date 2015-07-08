@@ -30,6 +30,9 @@ function islandora_batch_delete_set($set_id) {
     db_delete('islandora_batch_state')
       ->condition('id', $s, 'IN')
       ->execute();
+    db_delete('islandora_batch_queue_messages')
+      ->condition('id', $s, 'IN')
+      ->execute();
     db_delete('islandora_batch_resources')
       ->condition('id', $s, 'IN')
       ->execute();
@@ -55,7 +58,7 @@ function islandora_batch_delete_set($set_id) {
 }
 
 /**
- * Delete single object from the drupal database and mark file for removal.
+ * Delete single object from the Drupal database and mark file for removal.
  *
  * @param string $pid
  *   Object PID to remove from queue.
@@ -69,6 +72,9 @@ function islandora_batch_delete_object($pid) {
       ->condition('id', $pid)
       ->execute();
     db_delete('islandora_batch_resources')
+      ->condition('id', $pid)
+      ->execute();
+    db_delete('islandora_batch_queue_messages')
       ->condition('id', $pid)
       ->execute();
     db_delete('islandora_batch_queue')
@@ -147,6 +153,21 @@ function islandora_batch_merge_object_state($pid, $state) {
     ->fields(array(
       'state' => $state,
     ))
+    ->execute();
+}
+
+/**
+ * Insert record or update the message of a queued object.
+ *
+ * @param string $pid
+ *   The object id identifying the queued batch object.
+ * @param string $message
+ *   Message for the object.
+ */
+function islandora_batch_merge_object_message($pid, $message) {
+  db_merge('islandora_batch_queue_messages')
+    ->key(array('id' => $pid))
+    ->fields(array('message' => $message))
     ->execute();
 }
 
