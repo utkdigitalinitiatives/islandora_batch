@@ -444,6 +444,7 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
       $object['id'],
       isset($process_results['message']) && $process_results['message'] ?
         $process_results['message'] :
+        // Just cleaning the HTML out of the context message.
         strip_tags($context['message'])
     );
 

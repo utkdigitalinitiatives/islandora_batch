@@ -28,11 +28,12 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
   /**
    * Perform arbitrary processing before ingest.
    *
-   * @return int
-   *   Return the state after processing. If it is "fully processed", this
-   *   object should be pushed to the back-end.
+   * @return mixed
+   *   An integer corresponding to the state after processing. If it is "fully
+   *   processed", this object should be pushed to the back-end.
    *   If the state is "partially processed", we should be careful that the
    *   work does not get performed again next time around.
+   *   An array with state and message; array('state'=>int, 'message'=>string).
    */
   abstract public function batchProcess();
 
