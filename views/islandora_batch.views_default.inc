@@ -120,12 +120,19 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['fields']['id']['alter']['make_link'] = TRUE;
   $handler->display->display_options['fields']['id']['alter']['path'] = 'islandora/object/[id]';
   $handler->display->display_options['fields']['id']['alter']['target'] = '_blank';
-  /* Field: Islandora Batch: Item state */
+  /* Field: Islandora Batch: Item State */
   $handler->display->display_options['fields']['state']['id'] = 'state';
   $handler->display->display_options['fields']['state']['table'] = 'islandora_batch_state';
   $handler->display->display_options['fields']['state']['field'] = 'state';
+  $handler->display->display_options['fields']['state']['label'] = 'State';
   $handler->display->display_options['fields']['state']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['state']['alter']['text'] = '[state-text]';
+  /* Field: Islandora Batch: Item Message */
+  $handler->display->display_options['fields']['message']['id'] = 'message';
+  $handler->display->display_options['fields']['message']['table'] = 'islandora_batch_queue_messages';
+  $handler->display->display_options['fields']['message']['field'] = 'message';
+  $handler->display->display_options['fields']['message']['label'] = 'Message';
+  $handler->display->display_options['fields']['message']['hide_empty'] = TRUE;
   /* Field: Islandora Batch: Parent */
   $handler->display->display_options['fields']['parent']['id'] = 'parent';
   $handler->display->display_options['fields']['parent']['table'] = 'islandora_batch_queue';
@@ -151,6 +158,66 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['arguments']['sid']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['sid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['sid']['summary_options']['items_per_page'] = '25';
+  /* Filter criterion: Islandora Batch: Item State */
+  $handler->display->display_options['filters']['state']['id'] = 'state';
+  $handler->display->display_options['filters']['state']['table'] = 'islandora_batch_state';
+  $handler->display->display_options['filters']['state']['field'] = 'state';
+  $handler->display->display_options['filters']['state']['group'] = 1;
+  $handler->display->display_options['filters']['state']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['state']['expose']['operator_id'] = 'state_op';
+  $handler->display->display_options['filters']['state']['expose']['label'] = 'Item State';
+  $handler->display->display_options['filters']['state']['expose']['operator'] = 'state_op';
+  $handler->display->display_options['filters']['state']['expose']['identifier'] = 'state';
+  $handler->display->display_options['filters']['state']['is_grouped'] = TRUE;
+  $handler->display->display_options['filters']['state']['group_info']['label'] = 'Item State';
+  $handler->display->display_options['filters']['state']['group_info']['identifier'] = 'state';
+  $handler->display->display_options['filters']['state']['group_info']['group_items'] = array(
+    1 => array(
+      'title' => 'Error',
+      'operator' => '=',
+      'value' => array(
+        'value' => '-1',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+    2 => array(
+      'title' => 'Not Ready',
+      'operator' => '=',
+      'value' => array(
+        'value' => '0',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+    3 => array(
+      'title' => 'Ready',
+      'operator' => '=',
+      'value' => array(
+        'value' => '1',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+    4 => array(
+      'title' => 'Children Pending',
+      'operator' => '=',
+      'value' => array(
+        'value' => '2',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+    5 => array(
+      'title' => 'Ingested',
+      'operator' => '=',
+      'value' => array(
+        'value' => '3',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+  );
 
   /* Display: User Queue Page */
   $handler = $view->new_display('page', 'User Queue Page', 'islandora_batch_queue_page');
@@ -161,6 +228,66 @@ function islandora_batch_views_default_views() {
   $handler->display->display_options['access']['perm'] = 'ingest fedora objects';
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: Islandora Batch: Item State */
+  $handler->display->display_options['filters']['state']['id'] = 'state';
+  $handler->display->display_options['filters']['state']['table'] = 'islandora_batch_state';
+  $handler->display->display_options['filters']['state']['field'] = 'state';
+  $handler->display->display_options['filters']['state']['group'] = 1;
+  $handler->display->display_options['filters']['state']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['state']['expose']['operator_id'] = 'state_op';
+  $handler->display->display_options['filters']['state']['expose']['label'] = 'Item State';
+  $handler->display->display_options['filters']['state']['expose']['operator'] = 'state_op';
+  $handler->display->display_options['filters']['state']['expose']['identifier'] = 'state';
+  $handler->display->display_options['filters']['state']['is_grouped'] = TRUE;
+  $handler->display->display_options['filters']['state']['group_info']['label'] = 'Item State';
+  $handler->display->display_options['filters']['state']['group_info']['identifier'] = 'state';
+  $handler->display->display_options['filters']['state']['group_info']['group_items'] = array(
+    1 => array(
+      'title' => 'Error',
+      'operator' => '=',
+      'value' => array(
+        'value' => '-1',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+    2 => array(
+      'title' => 'Not Ready',
+      'operator' => '=',
+      'value' => array(
+        'value' => '0',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+    3 => array(
+      'title' => 'Ready',
+      'operator' => '=',
+      'value' => array(
+        'value' => '1',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+    4 => array(
+      'title' => 'Children Pending',
+      'operator' => '=',
+      'value' => array(
+        'value' => '2',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+    5 => array(
+      'title' => 'Ingested',
+      'operator' => '=',
+      'value' => array(
+        'value' => '3',
+        'min' => '',
+        'max' => '',
+      ),
+    ),
+  );
   /* Filter criterion: User: Current */
   $handler->display->display_options['filters']['uid_current']['id'] = 'uid_current';
   $handler->display->display_options['filters']['uid_current']['table'] = 'users';
@@ -208,14 +335,16 @@ function islandora_batch_views_default_views() {
     t('Associated Set'),
     t('Set creator'),
     t('ID'),
-    t('Item state'),
+    t('State'),
     t('[state-text]'),
+    t('Message'),
     t('Parent'),
     t('Set ID'),
     t('.'),
     t(','),
     t('All'),
     t('Set %1 Batch Queue'),
+    t('Item State'),
     t('User Queue Page'),
     t('Your Batch Ingest Queue'),
     t('Admin Queue Page'),

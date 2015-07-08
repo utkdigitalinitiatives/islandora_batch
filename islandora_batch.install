@@ -173,6 +173,32 @@ function islandora_batch_schema() {
       ),
     ),
   );
+  $schema['islandora_batch_queue_messages'] = array(
+    'description' => 'Per-object messages.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The identifier whose message we are storing.',
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'length' => 255,
+      ),
+      'message' => array(
+        'description' => 'The message for the object.',
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'medium',
+      ),
+    ),
+    'primary key' => array('id'),
+    'foreign keys' => array(
+      'associated_entry' => array(
+        'table' => 'islandora_batch_queue',
+        'fields' => array(
+          'id' => 'id',
+        ),
+      ),
+    ),
+  );
 
   return $schema;
 }
@@ -281,4 +307,37 @@ function islandora_batch_update_7102() {
       ),
     ),
   ));
+}
+
+/**
+ * Allow batches to record per-object messages.
+ */
+function islandora_batch_update_7103() {
+  $schema['islandora_batch_queue_messages'] = array(
+    'description' => 'Per-object messages.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The identifier whose message we are storing.',
+        'type' => 'varchar',
+        'not null' => TRUE,
+        'length' => 255,
+      ),
+      'message' => array(
+        'description' => 'The message for the object.',
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'medium',
+      ),
+    ),
+    'primary key' => array('id'),
+    'foreign keys' => array(
+      'associated_entry' => array(
+        'table' => 'islandora_batch_queue',
+        'fields' => array(
+          'id' => 'id',
+        ),
+      ),
+    ),
+  );
+  db_create_table('islandora_batch_queue_messages', $schema['islandora_batch_queue_messages']);
 }

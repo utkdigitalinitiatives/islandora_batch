@@ -187,7 +187,7 @@ function islandora_batch_views_data() {
       'help' => t('Identifier of an item in the queue.'),
     ),
     'state' => array(
-      'title' => t('Item state'),
+      'title' => t('Item State'),
       'help' => t('The state of an item in the queue.'),
       'field' => array(
         'handler' => 'IslandoraBatchStateFieldHandler',
@@ -195,8 +195,33 @@ function islandora_batch_views_data() {
       'sort' => array(
         'handler' => 'views_handler_sort',
       ),
+      'filter' => array(
+        'handler' => 'views_handler_filter_numeric',
+      ),
     ),
   );
 
+  $data['islandora_batch_queue_messages'] = array(
+    'table' => array(
+      'group' => t('Islandora Batch'),
+      'join' => array(
+        'islandora_batch_queue' => array(
+          'left_field' => 'id',
+          'field' => 'id',
+        ),
+      ),
+    ),
+    'id' => array(
+      'title' => t('ID'),
+      'help' => t('Identifier of an item in the queue.'),
+    ),
+    'message' => array(
+      'title' => t('Item Message'),
+      'help' => t('The message for an item in the queue.'),
+      'field' => array(
+        'handler' => 'views_handler_field',
+      ),
+    ),
+  );
   return $data;
 }

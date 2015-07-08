@@ -151,6 +151,21 @@ function islandora_batch_merge_object_state($pid, $state) {
 }
 
 /**
+ * Insert record or update the messsage of a queued object.
+ *
+ * @param string $pid
+ *   The object id identifying the queued batch object.
+ * @param string $message
+ *   Message for the object.
+ */
+function islandora_batch_merge_object_message($pid, $message) {
+  db_merge('islandora_batch_queue_messages')
+    ->key(array('id' => $pid))
+    ->fields(array('message' => $message))
+    ->execute();
+}
+
+/**
  * Get the batch set id related to a queued object.
  *
  * @param string $pid

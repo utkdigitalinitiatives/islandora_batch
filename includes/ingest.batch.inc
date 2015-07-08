@@ -398,7 +398,9 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
     $ingest_object = unserialize($object['data']);
 
     if ($object['state'] !== ISLANDORA_BATCH_STATE__DONE) {
-      $object['state'] = $ingest_object->batchProcess();
+      // Both a simple state and state with message return are accepted.
+      $process_results = $ingest_object->batchProcess();
+      $object['state'] = is_array($process_results) ? $process_results['state'] : $process_results;
     }
 
     if ($object['state'] === ISLANDORA_BATCH_STATE__DONE) {
@@ -430,11 +432,20 @@ function islandora_batch_process_results($results, $timeout, $lock_timeout, &$co
         $context['message'] = t('Exception occured: Failed to ingest %pid.', array('%pid' => $ingest_object->id));
       }
     }
+    else {
+      $context['message'] = t('%pid not ready for ingest.', array('%pid' => $ingest_object->id));
+    }
 
     // Update the info in the database.
     module_load_include('inc', 'islandora_batch', 'includes/db');
     islandora_batch_merge_queued_object_data($object['id'], $object['data']);
     islandora_batch_merge_object_state($object['id'], $object['state']);
+    islandora_batch_merge_object_message(
+      $object['id'],
+      isset($process_results['message']) && $process_results['message'] ?
+        $process_results['message'] :
+        strip_tags($context['message'])
+    );
 
     // Pass hook object and a pass/fail state for the object.
     module_invoke_all(ISLANDORA_BATCH_OBJECT_PROCESSED_HOOK, $ingest_object, ($object['state'] === ISLANDORA_BATCH_STATE__DONE ? 1 : 0));
