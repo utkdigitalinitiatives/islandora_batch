@@ -35,7 +35,7 @@ abstract class IslandoraBatchObject extends IslandoraNewFedoraObject {
    * @return int|array
    *   Either an integer corresponding to the state after processing or an associative array
    *   containing:
-   *   - state: The integer corresponding to the state, or
+   *   - state: The integer corresponding to the state.
    *   - message: A message relating a human-readable representation of the state.
    */
   abstract public function batchProcess();
