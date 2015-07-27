@@ -77,13 +77,16 @@ abstract class IslandoraBatchPreprocessor {
    */
   protected function getLock() {
     require_once __DIR__ . '/ingest.batch.inc';
-    $lock = islandora_batch_get_lock($this->setId);
-    if (!$lock) {
-      throw new IslandoraBatchFailedToLockException(
-          t('Failed to acquire lock for batch ingest.')
-      );
+    timer_start(__CLASS__);
+    while (timer_read(__CLASS__) < $this->lockTime * 1000) {
+      $lock = islandora_batch_get_lock($this->setId, $this->lockTime);
+      if (!$lock) {
+        throw new IslandoraBatchFailedToLockException(
+            t('Failed to acquire lock for batch ingest.')
+        );
+      }
+      return $lock;
     }
-    return $lock;
   }
 
   /**
