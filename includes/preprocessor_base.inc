@@ -35,12 +35,6 @@ abstract class IslandoraBatchPreprocessor {
   protected $setId;
 
   /**
-   * @var float $lockTime
-   *   The default amount of time for which to acquire our lock.
-   */
-  protected $lockTime = 30.0;
-
-  /**
    * Constructor must be able to receive an associative array of parameters.
    *
    * @param array $parameters
@@ -79,8 +73,10 @@ abstract class IslandoraBatchPreprocessor {
     require_once __DIR__ . '/ingest.batch.inc';
     $timer_name = __CLASS__ . "--SET:{$this->setId}";
     timer_start($timer_name);
-    while (timer_read($timer_name) < $this->lockTime * 1000) {
-      $lock = islandora_batch_get_lock($this->setId, $this->lockTime);
+    // Spend only up to 30 seconds spinning.
+    while (timer_read($timer_name) < 30 * 1000) {
+      // Attempt to get the lock for our set for the default amount of time.
+      $lock = islandora_batch_get_lock($this->setId);
       if (!$lock) {
         throw new IslandoraBatchFailedToLockException(
             t('Failed to acquire lock for batch ingest.')
