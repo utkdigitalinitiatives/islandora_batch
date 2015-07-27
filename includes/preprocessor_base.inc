@@ -56,11 +56,33 @@ abstract class IslandoraBatchPreprocessor {
       ));
     $this->setId = $insert->execute();
 
-    $lock = lock_acquire('islandora_batch_processing');
-    if (!$lock) {
-      throw new IslandoraBatchFailedToLockException(
-          t('Failed to acquire lock for batch ingest.')
-      );
+    $this->getLock();
+  }
+
+  /**
+   * Helper to acquire our lock.
+   *
+   * @return float
+   *   If we managed to acquire the lock, the amount of time in seconds for
+   *   which we acquired the lock; otherwise, we throw an exception.
+   *
+   * @throws IslandoraBatchFailedToLockException
+   *   If we failed to obtain the lock.
+   */
+  protected function getLock() {
+    require_once __DIR__ . '/ingest.batch.inc';
+    $timer_name = __CLASS__ . "--SET:{$this->setId}";
+    timer_start($timer_name);
+    // Spend only up to 30 seconds spinning.
+    while (timer_read($timer_name) < 30 * 1000) {
+      // Attempt to get the lock for our set for the default amount of time.
+      $lock = islandora_batch_get_lock($this->setId);
+      if (!$lock) {
+        throw new IslandoraBatchFailedToLockException(
+            t('Failed to acquire lock for batch ingest.')
+        );
+      }
+      return $lock;
     }
   }
 
@@ -71,12 +93,7 @@ abstract class IslandoraBatchPreprocessor {
    * serialized.
    */
   public function __wakeup() {
-    $lock = lock_acquire('islandora_batch_processing');
-    if (!$lock) {
-      throw new IslandoraBatchFailedToLockException(
-          t('Failed to acquire lock for batch ingest.')
-      );
-    }
+    $this->getLock();
   }
 
   /**

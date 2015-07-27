@@ -98,13 +98,13 @@ function islandora_batch_get_lock_timeout($timeout) {
  * @param float $timeout
  *   The total amount of time for which we want to process a batch, in seconds.
  *   A negative value indicates that we are to be processing for an undefined
- *   amount of time.
+ *   amount of time. Defaults to -1.0.
  *
  * @return float|bool
  *   The amount of time for which a suitable lock was acquired, in seconds;
  *   otherwise, FALSE.
  */
-function islandora_batch_get_lock($ingest_set, $timeout) {
+function islandora_batch_get_lock($ingest_set, $timeout = -1.0) {
   $lock_timeout = islandora_batch_get_lock_timeout($timeout);
 
   $globally_locked = lock_acquire(ISLANDORA_BATCH_LOCK_NAME, $lock_timeout) ||
