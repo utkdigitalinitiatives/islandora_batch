@@ -502,6 +502,12 @@ function islandora_batch_finished($success, $results, $operations) {
     // Check to see if all objects were succesfully processed.
     if (islandora_batch_check_if_set_is_fully_ingested($set)) {
       $successfully_processed_sets[] = $set;
+      db_update('islandora_batch_set')
+        ->fields(array(
+          'completed' => time(),
+        ))
+        ->condition('id', $set, '=')
+        ->execute();
     }
   }
   $lock_name = islandora_batch_get_lock_name($set);

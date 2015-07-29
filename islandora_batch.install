@@ -162,6 +162,11 @@ function islandora_batch_schema() {
         'type' => 'int',
         'not null' => TRUE,
       ),
+      'completed' => array(
+        'description' => 'Timestamp of when this set was completed.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'foreign keys' => array(
@@ -340,4 +345,15 @@ function islandora_batch_update_7103() {
     ),
   );
   db_create_table('islandora_batch_queue_messages', $schema['islandora_batch_queue_messages']);
+}
+
+/**
+ * Add column to track set completion.
+ */
+function islandora_batch_update_7104() {
+  db_add_field('islandora_batch_set', 'completed', array(
+    'description' => 'Timestamp of when this set was completed.',
+    'type' => 'int',
+    'not null' => FALSE,
+  ));
 }

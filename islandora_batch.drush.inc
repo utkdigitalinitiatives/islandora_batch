@@ -81,7 +81,21 @@ function islandora_batch_drush_command() {
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
   );
-
+  $items['islandora_batch_cleanup_processed_sets'] = array(
+    'aliases' => array('ibcps'),
+    'description' => dt('Cleans up processed sets that have existed greater than a specified time.'),
+    'drupal dependencies' => array('islandora_batch'),
+    'examples' => array(
+      'drush -v -u1 islandora_abtch_cleanup_processed_sets --time=sometime',
+    ),
+    'options' => array(
+      'time' => array(
+        'description' => dt('The amount of time since completion to compare against. The timestamp to be used to query against. Can use date +%s on the command line to get the current time.'),
+        'required' => TRUE,
+      ),
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
+  );
   return $items;
 }
 
@@ -139,4 +153,51 @@ function drush_islandora_batch_ingest() {
   islandora_batch_set_operations($parameters);
 
   drush_backend_batch_process();
+}
+
+/**
+ * Command callback; clean up processed sets.
+ */
+function drush_islandora_batch_cleanup_processed_sets() {
+  $batch = array(
+    'operations' => array(
+      array(
+        'islandora_batch_cleanup_processed_sets_batch_operation',
+        array(
+          drush_get_option('time'),
+        ),
+      ),
+    ),
+  );
+  batch_set($batch);
+  drush_backend_batch_process();
+}
+
+/**
+ * Batch operation; clean up processed sets greater than a duration.
+ */
+function islandora_batch_cleanup_processed_sets_batch_operation($time, &$context) {
+  module_load_include('inc', 'islandora_batch', 'includes/db');
+  $sandbox =& $context['sandbox'];
+
+  if (!isset($sandbox['total'])) {
+    $sets_to_cleanup = islandora_batch_get_sets($time);
+    $sandbox['progress'] = 0;
+    $sandbox['total'] = count($sets_to_cleanup);
+    if ($sandbox['total'] == 0) {
+      // Nothing to process.
+      $context['finished'] = 1;
+      $context['message'] = t('No sets to cleanup.');
+      return;
+    }
+    $sandbox['set_stash'] = $sets_to_cleanup;
+  }
+  $set = array_shift($sandbox['set_stash']);
+  islandora_batch_delete_set($set);
+  $sandbox['progress'] = min($sandbox['total'], $sandbox['progress'] + 1);
+  $context['finished'] = $sandbox['progress'] / $sandbox['total'];
+  $context['message'] = t('Cleaned up set @progress of @total.', array(
+    '@progress' => $sandbox['progress'],
+    '@total' => $sandbox['total'],
+  ));
 }

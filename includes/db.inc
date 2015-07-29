@@ -89,15 +89,14 @@ function islandora_batch_delete_object($pid) {
  * @return array
  *   An array of batch set ids for batches that exist in the database.
  */
-function islandora_batch_get_sets() {
-  $results = array();
-  $sets = db_select('islandora_batch_set', 's')
-    ->fields('s', array('id'))
-    ->execute();
-  while ($set = $sets->fetchAssoc()) {
-    $results[] = $set['id'];
+function islandora_batch_get_sets($completed_time = FALSE) {
+  $query = db_select('islandora_batch_set', 's')
+    ->fields('s', array('id'));
+  if ($completed_time) {
+    $query->condition('completed', $completed_time, '<=');
   }
-  return $results;
+  $sets = $query->execute();
+  return $sets->fetchCol();
 }
 
 /**
