@@ -86,7 +86,7 @@ function islandora_batch_drush_command() {
     'description' => dt('Cleans up processed sets that have existed greater than a specified time.'),
     'drupal dependencies' => array('islandora_batch'),
     'examples' => array(
-      'drush -v -u1 islandora_abtch_cleanup_processed_sets --time=sometime',
+      'drush -v -u1 islandora_batch_cleanup_processed_sets --time=1438179447',
     ),
     'options' => array(
       'time' => array(
