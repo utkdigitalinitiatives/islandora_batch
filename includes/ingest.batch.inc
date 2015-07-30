@@ -485,31 +485,23 @@ function islandora_batch_finished($success, $results, $operations) {
   $successfully_processed_sets = array();
   $set = isset($results['ingest_set']) ? $results['ingest_set'] : NULL;
   $process_count = isset($results['count']) ? $results['count'] : 0;
-  // If the batch ingest isn't being used on a specific batch set, then check
-  // all sets and add the ones that have been processed successfully.
-  if (!$set && $process_count > 0) {
-    $sets = islandora_batch_get_sets();
-    foreach ((array) $sets as $set) {
-      // Check to see if all objects were succesfully processed.
-      if (islandora_batch_check_if_set_is_fully_ingested($set)) {
-        $successfully_processed_sets[] = $set;
-      }
-    }
+  if (!$set) {
+    $sets = (array) islandora_batch_get_sets(FALSE);
   }
-  // If one specific batch set was ingested just make sure it's all the sets
-  // objects have been successfully ingest and add it to the array.
   elseif ($set) {
-    // Check to see if all objects were succesfully processed.
-    if (islandora_batch_check_if_set_is_fully_ingested($set)) {
-      $successfully_processed_sets[] = $set;
-      db_update('islandora_batch_set')
-        ->fields(array(
-          'completed' => time(),
-        ))
-        ->condition('id', $set, '=')
-        ->execute();
-    }
+    $sets = array($set);
   }
+
+  $successfully_processed_sets = array_filter($sets, 'islandora_batch_check_if_set_is_fully_ingested');
+  if (!empty($successfully_processed_sets)) {
+    db_update('islandora_batch_set')
+      ->fields(array(
+        'completed' => time(),
+      ))
+      ->condition('id', $successfully_processed_sets)
+      ->execute();
+  }
+
   $lock_name = islandora_batch_get_lock_name($set);
   lock_release($lock_name);
   if (module_exists('views') && variable_get('islandora_batch_link_when_finished', TRUE)) {

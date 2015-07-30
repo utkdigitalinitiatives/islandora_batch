@@ -164,7 +164,7 @@ function drush_islandora_batch_cleanup_processed_sets() {
       array(
         'islandora_batch_cleanup_processed_sets_batch_operation',
         array(
-          drush_get_option('time'),
+          drush_get_option('time', TRUE),
         ),
       ),
     ),
