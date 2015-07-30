@@ -86,18 +86,36 @@ function islandora_batch_delete_object($pid) {
 /**
  * Get all Batch sets stored in the database.
  *
+ * @param int|bool|NULL $completed
+ *   An optional timestamp:
+ *   - An integer timestamp will return sets dependent on $op.
+ *   - Boolean TRUE will provide all completed sets.
+ *   - Boolean FALSE will provide all incomplete sets.
+ *   - NULL (the default) will provide ALL sets.
+ * @param string $op
+ *   Only used with non-boolean/NULL values of $completed; represents the
+ *   operator to use in the comparison. Defaults to '<=', to select
+ *   objects completed before (or on) a specific timestamp.
+ *
  * @return array
  *   An array of batch set ids for batches that exist in the database.
  */
-function islandora_batch_get_sets() {
-  $results = array();
-  $sets = db_select('islandora_batch_set', 's')
-    ->fields('s', array('id'))
-    ->execute();
-  while ($set = $sets->fetchAssoc()) {
-    $results[] = $set['id'];
+function islandora_batch_get_sets($completed = NULL, $op = '<=') {
+  $query = db_select('islandora_batch_set', 's')
+    ->fields('s', array('id'));
+  if ($completed !== NULL) {
+    if ($completed === TRUE) {
+      $query->isNotNull('completed');
+    }
+    elseif ($completed === FALSE) {
+      $query->isNull('completed');
+    }
+    else {
+      $query->condition('completed', $completed, $op);
+    }
   }
-  return $results;
+  $sets = $query->execute();
+  return $sets->fetchCol();
 }
 
 /**
