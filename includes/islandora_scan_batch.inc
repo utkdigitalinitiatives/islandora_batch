@@ -524,7 +524,7 @@ EOXML;
   }
 
   /**
-   * Add any XACML policies from the parents
+   * Add any XACML policies from the parents.
    */
   protected function inheritXacmlPolicies() {
     if (module_exists('islandora_xacml_editor')) {
@@ -542,4 +542,12 @@ EOXML;
   protected function addContentModelRelationships() {
     $this->models = $this->preprocessorParameters['content_models'];
   }
+
+  /**
+   * Accessor for content models.
+   */
+  public function getContentModels() {
+    return (array) $this->models;
+  }
+
 }

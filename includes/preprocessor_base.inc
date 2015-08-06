@@ -107,18 +107,59 @@ abstract class IslandoraBatchPreprocessor {
   /**
    * Get an identifier we can use for an object.
    *
+   * @param IslandoraBatchObject $object
+   *   The object to be later processed and added to Fedora.
+   *
    * @return string
    *   An id to use in the back-end (Fedora).
    */
-  protected function getId() {
-    // Not specifying a namespace should result in one from the default
-    // declared in the fedora.fcfg ("changeme" by default).
-    $namespace = (isset($this->parameters['namespace'])) ?
-      $this->parameters['namespace'] :
-      NULL;
+  protected function getId(AbstractFedoraObject $object) {
+    // Command line argument overrides Collection Policy.
+    if (isset($this->parameters['namespace'])) {
+      $namespace = $this->parameters['namespace'];
+    }
+    else {
+      $namespace = $this->getNamespace($object);
+    }
 
     // TODO: Implement some form of caching, so we can get multiple at a time.
     return $this->connection->repository->api->m->getNextPid($namespace);
+  }
+
+
+  /**
+   * Try to get the namespace from the collection policy.
+   *
+   * @param IslandoraBatchObject $object
+   *   The object to be later processed and added to Fedora.
+   *
+   * @return string|NULL
+   *   The namespace with which the object should be ingested.
+   *   NULL if we use the Fedora configured default.
+   */
+  protected function getNamespace(AbstractFedoraObject $object) {
+    // Get namespace based on collection.
+    $collection_policies =& drupal_static(__METHOD__, array());
+    $parent_pid = $this->parameters['parent'];
+    // Not specifying a namespace should result in one from the default
+    // declared in the fedora.fcfg ("changeme" by default).
+    $namespace = NULL;
+    if (module_exists('islandora_basic_collection') && !isset($collection_policies[$parent_pid])) {
+      $parent = islandora_object_load($parent_pid);
+      if (isset($parent['COLLECTION_POLICY'])) {
+        $policy_stream = $parent['COLLECTION_POLICY'];
+        $collection_policies[$parent_pid] = new CollectionPolicy($policy_stream->content);
+      }
+    }
+    if (isset($collection_policies[$parent_pid])) {
+      $info = $collection_policies[$parent_pid]->getContentModels();
+      $applicable = array_intersect_key($info, drupal_map_assoc($object->getContentModels()));
+      if ($applicable) {
+        $first_applicable = reset($applicable);
+        $namespace = $first_applicable['namespace'];
+      }
+    }
+    return $namespace;
   }
 
   /**
@@ -145,7 +186,7 @@ abstract class IslandoraBatchPreprocessor {
    */
   protected function addToDatabase(AbstractFedoraObject $object, array $resources = array(), $parent = NULL) {
     if (!isset($object->id)) {
-      $object->id = $this->getId();
+      $object->id = $this->getId($object);
     }
 
     db_insert('islandora_batch_queue')
@@ -166,7 +207,7 @@ abstract class IslandoraBatchPreprocessor {
           ->execute();
       }
     }
-
     return $object->id;
   }
+
 }
