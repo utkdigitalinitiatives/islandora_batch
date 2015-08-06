@@ -520,6 +520,20 @@ EOXML;
 
     $this->relationships->add($uri, $predicate, $collection);
     $this->addContentModelRelationships();
+    $this->inheritXacmlPolicies();
+  }
+
+  /**
+   * Add any XACML policies from the parents
+   */
+  protected function inheritXacmlPolicies() {
+    if (module_exists('islandora_xacml_editor')) {
+      $collection = $this->preprocessorParameters['parent'];
+      $parent = islandora_object_load($collection);
+      if ($parent) {
+        islandora_xacml_editor_apply_parent_policy($this, $parent);
+      }
+    }
   }
 
   /**
