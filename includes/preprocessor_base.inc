@@ -107,7 +107,7 @@ abstract class IslandoraBatchPreprocessor {
   /**
    * Get an identifier we can use for an object.
    *
-   * @param IslandoraBatchObject $object
+   * @param AbstractFedoraObject $object
    *   The object to be later processed and added to Fedora.
    *
    * @return string
@@ -130,7 +130,7 @@ abstract class IslandoraBatchPreprocessor {
   /**
    * Try to get the namespace from the collection policy.
    *
-   * @param IslandoraBatchObject $object
+   * @param AbstractFedoraObject $object
    *   The object to be later processed and added to Fedora.
    *
    * @return string|NULL
@@ -153,7 +153,7 @@ abstract class IslandoraBatchPreprocessor {
     }
     if (isset($collection_policies[$parent_pid])) {
       $info = $collection_policies[$parent_pid]->getContentModels();
-      $applicable = array_intersect_key($info, drupal_map_assoc($object->getContentModels()));
+      $applicable = array_intersect_key($info, drupal_map_assoc($object->models));
       if ($applicable) {
         $first_applicable = reset($applicable);
         $namespace = $first_applicable['namespace'];
@@ -174,7 +174,7 @@ abstract class IslandoraBatchPreprocessor {
    *
    * Should be called from inside the "preprocess" method.
    *
-   * @param IslandoraBatchObject $object
+   * @param AbstractFedoraObject $object
    *   The object to be later processed and added to Fedora.
    * @param array $resources
    *   An associative array of arrays, mapping types of resources to an array
