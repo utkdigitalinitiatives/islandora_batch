@@ -379,7 +379,7 @@ class IslandoraScanBatchObject extends IslandoraBatchObject {
             $mods_datastream->setContentFromFile($this->objectInfo['xml']->uri, FALSE);
           }
           // MARCXML, transform to MODS and set.
-          elseif ($s_xml->getName() == 'record') {
+          elseif (in_array($s_xml->getName(), array('collection', 'record'))) {
             $mods_datastream->content = static::runXslTransform(array(
               'input' => $xml,
               'xsl' => $dir . '/transforms/MARC21slim2MODS3-4.xsl',
