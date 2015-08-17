@@ -78,6 +78,11 @@ function islandora_batch_drush_command() {
         'Defaults to namespace specified in Fedora configuration.',
         'value' => 'optional',
       ),
+      'output_ingest_set' => array(
+        'description' => 'Return the set ID of the newly created batch of items. ' .
+        'Default to FALSE.',
+        'value' => 'optional',
+      ),
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
   );
@@ -134,6 +139,9 @@ function drush_islandora_batch_scan_preprocess() {
 
   // Pass the preprocessor off to run.
   $preprocessed = islandora_batch_handle_preprocessor($preprocessor);
+  if (drush_get_option('output_ingest_set')) {
+    drush_log(t("New set ID (@s)", array('@s' => $preprocessor->getSetId())), "ok");
+  }
 }
 
 /**
