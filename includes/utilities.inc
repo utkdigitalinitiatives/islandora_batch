@@ -139,3 +139,17 @@ function islandora_batch_remove_file_usages($pid) {
     file_delete($file);
   }
 }
+
+/**
+ * Resets a Drupal timer.
+ *
+ * @param string $name
+ *   Name of the timer to reset.
+ */
+function islandora_batch_timer_reset($name) {
+  global $timers;
+  if (isset($timers[$name])) {
+    unset($timers[$name]);
+    $timers[$name]['time'] = 0;
+  }
+}

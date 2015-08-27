@@ -166,6 +166,7 @@ function islandora_batch_get_lock($ingest_set, $timeout = -1.0) {
  *   The batch context.
  */
 function islandora_batch_ingest_process(array $parameters, &$context) {
+  module_load_include('inc', 'islandora_batch', 'includes/utilities');
   extract($parameters);
 
   if (!isset($ingest_set)) {
@@ -228,6 +229,7 @@ function islandora_batch_ingest_process(array $parameters, &$context) {
       $set_states[] = $state = islandora_batch_process_results(islandora_batch_get_parents($ingest_set), $timeout, $lock_timeout, $context);
     }
     timer_stop(ISLANDORA_BATCH_LOCK_TIMER);
+    islandora_batch_timer_reset(ISLANDORA_BATCH_LOCK_TIMER);
   }
 
   // Attempting to process each set (parent/child/parent) returned each an
