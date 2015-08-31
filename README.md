@@ -33,7 +33,7 @@ N/A
 
 ## Documentation
 
-Further documentation for this module is available at [our wiki](https://wiki.duraspace.org/display/ISLANDORA/How+to+Batch+Ingest+Files)
+Further documentation for this module is available at [our wiki](https://wiki.duraspace.org/display/ISLANDORA/Islandora+Batch)
 
 ### Usage
 
