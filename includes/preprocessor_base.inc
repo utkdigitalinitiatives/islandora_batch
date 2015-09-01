@@ -140,6 +140,10 @@ abstract class IslandoraBatchPreprocessor {
   protected function getNamespace(AbstractFedoraObject $object) {
     // Get namespace based on collection.
     $collection_policies =& drupal_static(__METHOD__, array());
+    // Parameter not set.
+    if (!isset($this->parameters['parent'])) {
+      return NULL;
+    }
     $parent_pid = $this->parameters['parent'];
     // Not specifying a namespace should result in one from the default
     // declared in the fedora.fcfg ("changeme" by default).
