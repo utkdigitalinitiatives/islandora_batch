@@ -134,6 +134,7 @@ function drush_islandora_batch_scan_preprocess() {
 
   // Pass the preprocessor off to run.
   $preprocessed = islandora_batch_handle_preprocessor($preprocessor);
+  drush_log(t("SetId: @s", array('@s' => $preprocessor->getSetId())), "ok");
 }
 
 /**
