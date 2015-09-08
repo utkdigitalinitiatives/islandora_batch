@@ -119,7 +119,7 @@ abstract class IslandoraBatchPreprocessor {
       $namespace = $this->parameters['namespace'];
     }
     else {
-      $namespace = $this->getNamespace($object);
+      $namespace = $this->getNamespaceFromParent($object);
     }
 
     // TODO: Implement some form of caching, so we can get multiple at a time.
@@ -137,7 +137,7 @@ abstract class IslandoraBatchPreprocessor {
    *   The namespace with which the object should be ingested.
    *   NULL if we use the Fedora configured default.
    */
-  protected function getNamespace(AbstractFedoraObject $object) {
+  protected function getNamespaceFromParent(AbstractFedoraObject $object) {
     // Get namespace based on collection.
     $collection_policies =& drupal_static(__METHOD__, array());
     // Parameter not set.
