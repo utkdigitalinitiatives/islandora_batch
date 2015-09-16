@@ -53,8 +53,8 @@ function islandora_batch_drush_command() {
         'required' => TRUE,
       ),
       'content_models' => array(
-        'description' => 'A comma-separated list of content models to assign ' .
-        'to the objects.',
+        'description' => 'Supports one or multiple comma-separated content ' .
+        'models which are all applied to each ingested object.',
         'value' => 'optional',
         // 'required' => FALSE,
       ),
