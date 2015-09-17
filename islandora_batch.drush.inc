@@ -45,7 +45,11 @@ function islandora_batch_drush_command() {
     ),
     'options' => array(
       'type' => array(
-        'description' => 'Either "directory" or "zip".',
+        'description' => 'Either "directory" or "zip". If zip is used, it is' .
+        "advisable to use a zip file smaller than 2G, because PHP's integer" .
+        " type is signed and many platforms use 32bit integers, some" .
+        " filesystem functions may return unexpected results for files which" .
+        " are larger than 2GB.",
         'required' => TRUE,
       ),
       'target' => array(
