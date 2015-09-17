@@ -45,11 +45,10 @@ function islandora_batch_drush_command() {
     ),
     'options' => array(
       'type' => array(
-        'description' => 'Either "directory" or "zip". If zip is used, it is' .
-        "advisable to use a zip file smaller than 2G, because PHP's integer" .
-        " type is signed and many platforms use 32bit integers, some" .
-        " filesystem functions may return unexpected results for files which" .
-        " are larger than 2GB.",
+        'description' => 'Either "directory" or "zip". The zip importer is' .
+        " unstable with large files (~2GB). Consider alternative methods" .
+        " such as unzipping your Zip file and using Islandora Batch's" .
+        "`--directory` option.",
         'required' => TRUE,
       ),
       'target' => array(
