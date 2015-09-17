@@ -45,7 +45,10 @@ function islandora_batch_drush_command() {
     ),
     'options' => array(
       'type' => array(
-        'description' => 'Either "directory" or "zip".',
+        'description' => 'Either "directory" or "zip". The zip importer is' .
+        " unstable with large files (~2GB). Consider alternative methods" .
+        " such as unzipping your Zip file and using Islandora Batch's" .
+        "`--directory` option.",
         'required' => TRUE,
       ),
       'target' => array(
