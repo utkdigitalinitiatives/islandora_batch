@@ -109,7 +109,7 @@ function islandora_batch_drush_command() {
 }
 
 /**
- * Implemnents drush_COMMAND_validate() for islandora_batch_scan_preprocess.
+ * Implements drush_COMMAND_validate() for islandora_batch_scan_preprocess.
  */
 function drush_islandora_batch_scan_preprocess_validate() {
   module_load_include('inc', 'islandora_batch', 'includes/utilities');
