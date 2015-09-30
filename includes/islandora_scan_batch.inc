@@ -92,7 +92,13 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
 
     $info = array();
     for ($i = 0; $i < $count; $i++) {
-      $name = $zip->getNameIndex($i);
+      $raw_name = $zip->getNameIndex($i, ZipArchive::FL_UNCHANGED);
+      if (isset($this->parameters['zip_encoding']) && trim($this->parameters['zip_encoding']) !== '') {
+        $name = drupal_convert_to_utf8($raw_name, $this->parameters['zip_encoding']);
+      }
+      else {
+        $name = $zip->getNameIndex($i);
+      }
       $path_info = pathinfo($name);
 
       // Avoid creating entries for directories and some weird Mac stuff...
@@ -100,7 +106,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
       // $this::getPattern(), and to filter the results based on it.
       if (isset($path_info['extension']) && strpos($path_info['dirname'], '__MACOSX') === FALSE && $path_info['extension'] != 'DS_Store') {
         $file_entry = new stdClass();
-        $file_entry->uri = "zip://$zip_file#$name";
+        $file_entry->uri = "zip://$zip_file#$raw_name";
         $file_entry->filename = $path_info['basename'];
         $file_entry->name = $path_info['filename'];
         $info[$name] = $file_entry;

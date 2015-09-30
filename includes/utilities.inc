@@ -153,3 +153,55 @@ function islandora_batch_timer_reset($name) {
     $timers[$name]['time'] = 0;
   }
 }
+
+/**
+ * Helper to test if a given encoding will work.
+ *
+ * @param string $type
+ *   The "type" of target, we only care about "zip".
+ * @param string $encoding
+ *   The name of an encoding to test.
+ *
+ * @return NULL|string
+ *   NULL if we have not found an issue; otherwise, a string trying to describe
+ *   the issue.
+ */
+function islandora_batch_scan_check_encoding($type, $encoding) {
+  if ($type == 'zip' && $encoding) {
+    // Test parallel to drupal_convert_to_utf8().
+    if (function_exists('iconv')) {
+      $error_probe = function ($no = NULL, $str = NULL, $file = NULL, $line = NULL) {
+        static $found = FALSE;
+        $found = $found || $no !== NULL;
+        return $found;
+      };
+      set_error_handler($error_probe);
+      iconv_strlen('test', $encoding);
+      restore_error_handler();
+      if ($error_probe()) {
+        // XXX: "Should be supported", since PHP and the "iconv" command may be
+        // compiled against different libraries; however, this should be rare...
+        // hopefully?
+        return t('An invalid encoding has been specified for iconv; check "iconv -l" for a listing of those which should be supported.');
+      }
+    }
+    elseif (function_exists('mb_convert_encoding')) {
+      if (!(@mb_encoding_aliases($encoding) || in_array($encoding, mb_list_encodings()))) {
+        return t('An invalid encoding has been specified for mb_convert_encoding().');
+      }
+    }
+    elseif (function_exists('recode_string')) {
+      $error_probe = function ($no = NULL, $str = NULL, $file = NULL, $line = NULL) {
+        static $found = FALSE;
+        $found = $found || $no !== NULL;
+        return $found;
+      };
+      set_error_handler($error_probe);
+      recode_string("$encoding..utf8", 'test');
+      restore_error_handler();
+      if ($error_probe()) {
+        return t('An invalid encoding has been specified for recode_string().');
+      }
+    }
+  }
+}

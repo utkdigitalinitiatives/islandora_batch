@@ -81,6 +81,12 @@ function islandora_batch_drush_command() {
         'Defaults to namespace specified in Fedora configuration.',
         'value' => 'optional',
       ),
+      'zip_encoding' => array(
+        'description' => 'The encoding of filenames contained in ZIP ' .
+        'archives:Only relevant with --target=zip. Defaults to the native ' .
+        'encoding being used by PHP.',
+        'value' => 'optional',
+      ),
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
   );
@@ -103,6 +109,17 @@ function islandora_batch_drush_command() {
 }
 
 /**
+ * Implements drush_COMMAND_validate() for islandora_batch_scan_preprocess.
+ */
+function drush_islandora_batch_scan_preprocess_validate() {
+  module_load_include('inc', 'islandora_batch', 'includes/utilities');
+  $encoding_check = islandora_batch_scan_check_encoding(drupal_strtolower(drush_get_option('type')), drush_get_option('zip_encoding'));
+  if ($encoding_check !== NULL) {
+    drush_set_error('INVALID ENCODING', $encoding_check);
+  }
+}
+
+/**
  * Implements hook_islandora_batch_scan_preprocess().
  *
  * Builds a preprocessor, and passes it off to a preprocessor handler.
@@ -122,6 +139,7 @@ function drush_islandora_batch_scan_preprocess() {
     'parent_relationship_uri' => drush_get_option('parent_relationship_uri', 'info:fedora/fedora-system:def/relations-external#'),
     'parent_relationship_pred' => drush_get_option('parent_relationship_pred', 'isMemberOfCollection'),
     'namespace' => drush_get_option('namespace'),
+    'zip_encoding' => drush_get_option('zip_encoding'),
   );
 
   if ($content_models = drush_get_option('content_models', FALSE)) {
