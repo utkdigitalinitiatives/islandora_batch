@@ -93,7 +93,7 @@ class IslandoraScanBatch extends IslandoraBatchPreprocessor {
     $info = array();
     for ($i = 0; $i < $count; $i++) {
       $raw_name = $zip->getNameIndex($i, ZipArchive::FL_UNCHANGED);
-      if (isset($this->parameters['zip_encoding'])) {
+      if (isset($this->parameters['zip_encoding']) && trim($this->parameters['zip_encoding']) !=- '') {
         $name = drupal_convert_to_utf8($raw_name, $this->parameters['zip_encoding']);
       }
       else {
