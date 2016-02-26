@@ -41,7 +41,7 @@ function islandora_batch_drush_command() {
     'ZIP archive.',
     'drupal dependencies' => array('islandora_batch'),
     'examples' => array(
-      'drush -v --user=admin --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --target=/tmp/batch_ingest',
+      'drush -v --user=admin --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --scan_target=/tmp/batch_ingest',
     ),
     'options' => array(
       'type' => array(
@@ -51,7 +51,7 @@ function islandora_batch_drush_command() {
         "`--directory` option.",
         'required' => TRUE,
       ),
-      'target' => array(
+      'scan_target' => array(
         'description' => 'The target to directory or zip file to scan.',
         'required' => TRUE,
       ),
@@ -83,7 +83,7 @@ function islandora_batch_drush_command() {
       ),
       'zip_encoding' => array(
         'description' => 'The encoding of filenames contained in ZIP ' .
-        'archives:Only relevant with --target=zip. Defaults to the native ' .
+        'archives:Only relevant with --scan_target=zip. Defaults to the native ' .
         'encoding being used by PHP.',
         'value' => 'optional',
       ),
@@ -134,7 +134,7 @@ function drush_islandora_batch_scan_preprocess() {
 
   $parameters = array(
     'type' => drush_get_option('type'),
-    'target' => drush_get_option('target'),
+    'scan_target' => drush_get_option('scan_target'),
     'parent' => drush_get_option('parent', variable_get('islandora_repository_pid', 'islandora:root')),
     'parent_relationship_uri' => drush_get_option('parent_relationship_uri', 'info:fedora/fedora-system:def/relations-external#'),
     'parent_relationship_pred' => drush_get_option('parent_relationship_pred', 'isMemberOfCollection'),
