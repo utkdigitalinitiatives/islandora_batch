@@ -41,7 +41,10 @@ function islandora_batch_drush_command() {
     'ZIP archive.',
     'drupal dependencies' => array('islandora_batch'),
     'examples' => array(
-      'drush -v --user=admin --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --scan_target=/tmp/batch_ingest',
+      format_string('drush -v --user=admin --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --@target=/tmp/batch_ingest',
+      array(
+        '@target' => drush_core_version() >= 7 ? 'scan_target' : 'target',
+      )),
     ),
     'options' => array(
       'type' => array(
@@ -51,15 +54,10 @@ function islandora_batch_drush_command() {
         "`--directory` option.",
         'required' => TRUE,
       ),
-      'scan_target' => array(
-        'description' => 'The target to directory or zip file to scan.',
-        'required' => TRUE,
-      ),
       'content_models' => array(
         'description' => 'Supports one or multiple comma-separated content ' .
         'models which are all applied to each ingested object.',
         'value' => 'optional',
-        // 'required' => FALSE,
       ),
       'parent' => array(
         'description' => 'The collection to which the generated items should ' .
@@ -90,6 +88,22 @@ function islandora_batch_drush_command() {
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
   );
+  // XXX: The target parameter became reserved in Drush 7 and above, for
+  // backwards compatibility both will be supported. Not using
+  // strict-option-handling (http://www.drush.org/en/master/strict-options) as
+  // it requires manual argument parsing.
+  if (drush_core_version() >= 7) {
+    $items['islandora_batch_scan_preprocess']['options']['scan_target'] = array(
+      'description' => 'The target to directory or zip file to scan.',
+      'required' => TRUE,
+    );
+  }
+  else {
+    $items['islandora_batch_scan_preprocess']['options']['target'] = array(
+      'description' => 'The target to directory or zip file to scan.',
+      'required' => TRUE,
+    );
+  }
   $items['islandora_batch_cleanup_processed_sets'] = array(
     'aliases' => array('ibcps'),
     'description' => dt('Cleans up processed sets that have existed greater than a specified time.'),
@@ -134,7 +148,7 @@ function drush_islandora_batch_scan_preprocess() {
 
   $parameters = array(
     'type' => drush_get_option('type'),
-    'scan_target' => drush_get_option('scan_target'),
+    'target' => drush_core_version() >= 7 ? drush_get_option('scan_target') : drush_get_option('target'),
     'parent' => drush_get_option('parent', variable_get('islandora_repository_pid', 'islandora:root')),
     'parent_relationship_uri' => drush_get_option('parent_relationship_uri', 'info:fedora/fedora-system:def/relations-external#'),
     'parent_relationship_pred' => drush_get_option('parent_relationship_pred', 'isMemberOfCollection'),
