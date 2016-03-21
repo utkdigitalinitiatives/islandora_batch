@@ -272,3 +272,42 @@ function islandora_batch_permission() {
 
   return $perms;
 }
+
+/**
+ * Implements hook_islandora_batch_process_finished().
+ *
+ * Delete successfully ingested batch sets.
+ */
+function islandora_batch_islandora_batch_process_finished($sets) {
+  $auto_remove = variable_get('islandora_batch_auto_remove_set', FALSE);
+  if ($auto_remove) {
+    if (!empty($sets)) {
+      module_load_include('inc', 'islandora_batch', 'includes/db');
+      foreach ($sets as $set) {
+        // Delete set and associated queued items.
+        islandora_batch_delete_set($set);
+        // Set a message that the batch set was removed.
+        drupal_set_message(t('The batch set (@set_id) has been processed successfully and has been automatically removed from the queue.', array(
+          '@set_id' => $set,
+        )));
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_islandora_batch_object_processed().
+ *
+ * Delete (temp) files associated with successfully ingested batch objects.
+ */
+function islandora_batch_islandora_batch_object_processed($ingest_object, $state) {
+  $auto_remove = variable_get('islandora_batch_auto_remove_set', FALSE);
+  if ($auto_remove) {
+    module_load_include('inc', 'islandora_batch', 'includes/utilities');
+    if ($state) {
+      // We want to remove the file usages and delete the temp files for any
+      // object which has been successfully ingested.
+      islandora_batch_remove_file_usages($ingest_object->id);
+    }
+  }
+}
