@@ -24,8 +24,8 @@ function islandora_batch_admin_form($form, $form_state) {
   );
   $form['islandora_batch_auto_remove_set'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Auto-remove batch set when processing finishes?'),
-    '#description' => t('When a batch set is processed, it will be removed from storage.'),
+    '#title' => t('Auto-remove batch set when successfully processed?'),
+    '#description' => t('When a batch set successfully completes, it will be removed from the batch queue.'),
     '#default_value' => variable_get('islandora_batch_auto_remove_set', FALSE),
   );
 
