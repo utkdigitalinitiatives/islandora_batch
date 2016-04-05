@@ -39,6 +39,14 @@ Further documentation for this module is available at [our wiki](https://wiki.du
 
 The base ZIP/directory preprocessor can be called as a drush script (see `drush help islandora_batch_scan_preprocess` for additional parameters):
 
+Drush made the `target` parameter reserved as of Drush 7. To allow for backwards compatability this will be preserved.
+
+Drush 7 and above:
+
+`drush -v -u 1 --uri=http://localhost islandora_batch_scan_preprocess --type=zip --scan_target=/path/to/archive.zip`
+
+Drush 6 and below:
+
 `drush -v -u 1 --uri=http://localhost islandora_batch_scan_preprocess --type=zip --target=/path/to/archive.zip`
 
 This will populate the queue (stored in the Drupal database) with base entries.
@@ -51,7 +59,13 @@ The queue of preprocessed items can then be processed:
 
 A fuller example, which preprocesses large image objects for inclusion in the collection with PID "yul:F0433", is:
 
+Drush 7 and above:
+
 `drush -v -u 1 --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --target=/tmp/batch_ingest`
+
+Drush 6 and below:
+
+`drush -v -u 1 --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --scan_target=/tmp/batch_ingest`
 
 then, to ingest the queued objects:
 
