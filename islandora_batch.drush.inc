@@ -43,7 +43,7 @@ function islandora_batch_drush_command() {
     'examples' => array(
       format_string('drush -v --user=admin --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --@target=/tmp/batch_ingest',
       array(
-        '@target' => drush_core_version() >= 7 ? 'scan_target' : 'target',
+        '@target' => DRUSH_VERSION >= 7 ? 'scan_target' : 'target',
       )),
     ),
     'options' => array(
@@ -92,7 +92,7 @@ function islandora_batch_drush_command() {
   // backwards compatibility both will be supported. Not using
   // strict-option-handling (http://www.drush.org/en/master/strict-options) as
   // it requires manual argument parsing.
-  if (drush_core_version() >= 7) {
+  if (DRUSH_VERSION >= 7) {
     $items['islandora_batch_scan_preprocess']['options']['scan_target'] = array(
       'description' => 'The target to directory or zip file to scan.',
       'required' => TRUE,
@@ -148,7 +148,7 @@ function drush_islandora_batch_scan_preprocess() {
 
   $parameters = array(
     'type' => drush_get_option('type'),
-    'target' => drush_core_version() >= 7 ? drush_get_option('scan_target') : drush_get_option('target'),
+    'target' => DRUSH_VERSION >= 7 ? drush_get_option('scan_target') : drush_get_option('target'),
     'parent' => drush_get_option('parent', variable_get('islandora_repository_pid', 'islandora:root')),
     'parent_relationship_uri' => drush_get_option('parent_relationship_uri', 'info:fedora/fedora-system:def/relations-external#'),
     'parent_relationship_pred' => drush_get_option('parent_relationship_pred', 'isMemberOfCollection'),
