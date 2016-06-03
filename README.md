@@ -6,10 +6,10 @@ This module implements a batch framework, as well as a basic ZIP/directory inges
 
 The ingest is a two-step process:
 
-* **Preprocessing**: The data is scanned, and a number of entries created in the
+* Preprocessing: The data is scanned, and a number of entries created in the
   Drupal database.  There is minimal processing done at this point, so it can
   complete outside of a batch process.
-* **Ingest**: The data is actually processed and ingested. This happens inside of
+* Ingest: The data is actually processed and ingested. This happens inside of
   a Drupal batch.
 
 ## Requirements
@@ -25,9 +25,7 @@ will allow additional reporting and management displays to be rendered.
 
 # Installation
 
-Install module as usual, see [this](https://drupal.org/documentation/install/modules-themes/modules-7) for further information.
-
-`/path/to/drupal/sites/all/modules`
+Install as usual, see [this](https://drupal.org/documentation/install/modules-themes/modules-7) for further information.
 
 ## Configuration
 
@@ -41,68 +39,37 @@ Further documentation for this module is available at [our wiki](https://wiki.du
 
 The base ZIP/directory preprocessor can be called as a drush script (see `drush help islandora_batch_scan_preprocess` for additional parameters):
 
-Files are grouped according to their basename (without extension). DC, MODS or MARCXML stored in a \*.xml or binary MARC stored in a \*.mrc will be transformed to both MODS and DC, and the first entry with another extension will be used to create an "OBJ" datastream. Where there is a basename with no matching .xml or .mrc, some XML will be created which simply uses the filename as the title.
-Minimally Required is a Metadata file (\*.xml **OR** \*.mrc) and a **Obj**ect file 
-
-**Note:** All other datastreams are optional
-
-**Option 1**
-```tree-view
-/tmp/batch_ingest/
- └── book/
-      ├── 1/
-      │   └── OBJ.tif
-      ├── 2/
-      │   ├── OBJ.tif
-      │   ├── OCR.asc
-      │   └── HOCR.shtml
-      ├── 3/
-      │   └── OBJ.tif
-      └── DC.xml
-```
-
-**Option 2**
-```tree-view
-/tmp/batch_ingest/
-└── book/
-    ├── 1/
-    │   ├── DC.xml
-    │   └── OBJ.tif
-    └── 2/
-        ├── DC.xml
-        └── OBJ.tif
-```
-
 Drush made the `target` parameter reserved as of Drush 7. To allow for backwards compatability this will be preserved.
-
-#### Examples of Zip & directory batch processing
 
 Drush 7 and above:
 
 `drush -v -u 1 --uri=http://localhost islandora_batch_scan_preprocess --type=zip --scan_target=/path/to/archive.zip`
 
-`drush -v -u 1 --uri=http://localhost islandora_book_batch_preprocess --namespace=book --type=directory --scan_target=/tmp/batch_ingest/`
-
 Drush 6 and below:
 
 `drush -v -u 1 --uri=http://localhost islandora_batch_scan_preprocess --type=zip --target=/path/to/archive.zip`
 
-`drush -v -u 1 --uri=http://localhost islandora_book_batch_preprocess --namespace=book --type=directory --target=/tmp/batch_ingest/`
-
 This will populate the queue (stored in the Drupal database) with base entries.
+
+For the base scan, files are grouped according to their basename (without extension). DC, MODS or MARCXML stored in a *.xml or binary MARC stored in a *.mrc will be transformed to both MODS and DC, and the first entry with another extension will be used to create an "OBJ" datastream. Where there is a basename with no matching .xml or .mrc, some XML will be created which simply uses the filename as the title.
+
 The queue of preprocessed items can then be processed:
 
 `drush -v -u 1 --uri=http://localhost islandora_batch_ingest`
 
-A fuller example, which preprocesses large image objects for inclusion in the collection with PID "yul:F0433", and ingest the queued objects is:
+A fuller example, which preprocesses large image objects for inclusion in the collection with PID "yul:F0433", is:
 
 Drush 7 and above:
 
-`drush -v -u 1 --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --scan_target=/tmp/batch_ingest && drush -v -u 1 --uri=http://localhost islandora_batch_ingest`
+`drush -v -u 1 --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --target=/tmp/batch_ingest`
 
 Drush 6 and below:
 
-`drush -v -u 1 --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --target=/tmp/batch_ingest && drush -v -u 1 --uri=http://localhost islandora_batch_ingest`
+`drush -v -u 1 --uri=http://digital.library.yorku.ca islandora_batch_scan_preprocess --content_models=islandora:sp_large_image_cmodel --parent=yul:F0433 --parent_relationship_pred=isMemberOfCollection --type=directory --scan_target=/tmp/batch_ingest`
+
+then, to ingest the queued objects:
+
+`drush -v -u 1 --uri=http://digital.library.yorku.ca islandora_batch_ingest`
 
 ### Customization
 
